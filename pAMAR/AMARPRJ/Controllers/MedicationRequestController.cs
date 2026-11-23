@@ -45,7 +45,7 @@ namespace AMARPRJ.Controllers
         }
 
         // =========================================================================
-        // صفحه اصلی / هدایت بر اساس دسترسی
+        // صفحه اصلی / داشبورد و هدایت بر اساس دسترسی
         // =========================================================================
         public ActionResult Index()
         {
@@ -54,14 +54,25 @@ namespace AMARPRJ.Controllers
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_MAIN });
             }
 
-            // اگر کاربر دسترسی انباردار داشت به صفحه انبار هدایت شود
-            if (genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE))
+            bool hasWarehouse = genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE);
+            bool hasSecretariat = genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT);
+
+            // اگر کاربر همزمان به هر دو کارتابل دسترسی دارد، داشبورد انتخاب کارتابل نمایش داده شود
+            if (hasWarehouse && hasSecretariat)
+            {
+                ViewBag.HasWarehouse = true;
+                ViewBag.HasSecretariat = true;
+                return View();
+            }
+
+            // اگر کاربر صرفاً دسترسی انباردار دارد، مستقیماً هدایت شود
+            if (hasWarehouse)
             {
                 return RedirectToAction("Warehouse");
             }
 
-            // اگر دسترسی دبیرخانه داشت به صفحه دبیرخانه هدایت شود
-            if (genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            // اگر کاربر صرفاً دسترسی دبیرخانه دارد، مستقیماً هدایت شود
+            if (hasSecretariat)
             {
                 return RedirectToAction("Secretariat");
             }
