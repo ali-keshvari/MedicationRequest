@@ -37,7 +37,7 @@ namespace AMAR.Application.HR.Mapper
         {
             if (entity == null) return null;
 
-            return new MedicationRequestDTO
+            var dto = new MedicationRequestDTO
             {
                 UniqId = entity.UniqId,
                 WorkFlowHdrId = entity.WorkFlowHdrId,
@@ -63,6 +63,16 @@ namespace AMAR.Application.HR.Mapper
                 DeliveredDateShamsi = entity.DeliveredDate.ToShamsi(),
                 DeliveredBy = entity.DeliveredBy
             };
+
+            if (entity is MedicationRequestWithPerson withPerson)
+            {
+                dto.PersonCode = withPerson.PersonCode;
+                dto.FullName = withPerson.FullName;
+                dto.NationalCode = withPerson.NationalCode;
+                dto.Mobile = withPerson.Mobile;
+            }
+
+            return dto;
         }
     }
 }

@@ -9,11 +9,11 @@ namespace AMAR.DataAccess.EF.Repository.HR
 {
     public class MedicationRequestRepository : IMedicationRequestRepository
     {
-        private readonly AmarDbContext _context;
+        private readonly dbContext _context;
 
-        public MedicationRequestRepository(AmarDbContext context = null)
+        public MedicationRequestRepository(dbContext context = null)
         {
-            _context = context ?? new AmarDbContext();
+            _context = context ?? new dbContext();
         }
 
         public IQueryable<MedicationRequest> GetAll()
@@ -92,14 +92,13 @@ namespace AMAR.DataAccess.EF.Repository.HR
 
             _context.SaveChanges();
 
-            // گروه بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت الحاق در فرم جریان کار و ارسال نوتیفیکیشن
+            // گروه بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت الحاق در فرم فرآیند و ارسال نوتیفیکیشن
             var grouped = items
                 .GroupBy(x => new { x.WorkFlowHdrId, x.PersonId })
                 .ToList();
 
             foreach (var group in grouped)
             {
-                // Concat لیست داروهای قبول شده
                 var medList = string.Join(" | ", group.Select(m => $"{m.productName} ({m.Qty} عدد)"));
                 var fullText = $"[حواله انبار در تاریخ {now:yyyy/MM/dd HH:mm} توسط {userName}]: {medList}";
 
@@ -113,6 +112,61 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 .Where(x => x.Status == (int)MedicationStatus.Issued)
                 .OrderByDescending(x => x.IssuedDate)
                 .ToList();
+        }
+
+        public List<MedicationRequestWithPerson> GetIssuedRequestsWithPersonInfo(string personCode = null, string fullName = null, string deliveryLocation = null)
+        {
+            var sql = @"
+                SELECT 
+                    req.UniqId,
+                    req.WorkFlowHdrId,
+                    req.PersonId,
+                    req.ProductId,
+                    req.productName,
+                    req.Qty,
+                    req.DeliveryLocation,
+                    req.ShYear,
+                    req.ShSeason,
+                    req.Status,
+                    req.SnapshotId,
+                    req.SnapshotDate,
+                    req.IssuedDate,
+                    req.IssuedBy,
+                    req.DeliveredDate,
+                    req.DeliveredBy,
+                    req.CreatedDate,
+                    ISNULL(p.PersonCode, '') AS PersonCode,
+                    ISNULL(p.FirstName + ' ' + p.LastName, N'نامشخص') AS FullName,
+                    ISNULL(p.NationalCode, '') AS NationalCode,
+                    ISNULL(p.Mobile, '') AS Mobile
+                FROM [gen].[MedicationRequest] req
+                LEFT JOIN [dbo].[Person] p ON req.PersonId = p.PersonId
+                WHERE req.Status = @status
+            ";
+
+            var results = _context.Database.SqlQuery<MedicationRequestWithPerson>(
+                sql,
+                new SqlParameter("@status", (int)MedicationStatus.Issued)
+            ).ToList();
+
+            IEnumerable<MedicationRequestWithPerson> filtered = results;
+
+            if (!string.IsNullOrWhiteSpace(personCode))
+            {
+                filtered = filtered.Where(x => x.PersonCode != null && x.PersonCode.Contains(personCode.Trim()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(fullName))
+            {
+                filtered = filtered.Where(x => x.FullName != null && x.FullName.Contains(fullName.Trim()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(deliveryLocation))
+            {
+                filtered = filtered.Where(x => x.DeliveryLocation != null && x.DeliveryLocation.Equals(deliveryLocation.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            return filtered.OrderByDescending(x => x.IssuedDate).ToList();
         }
 
         public void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId)
@@ -149,6 +203,16 @@ namespace AMAR.DataAccess.EF.Repository.HR
 
                 SaveWorkflowAndNotify(group.Key.WorkFlowHdrId, group.Key.PersonId, deliveryWFFieldId, fullText, "DELIVERY", userName);
             }
+        }
+
+        public List<string> GetDeliveryLocations()
+        {
+            return _context.MedicationRequests
+                .Where(x => x.DeliveryLocation != null && x.DeliveryLocation != "")
+                .Select(x => x.DeliveryLocation)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
         }
 
         public void SaveWorkflowAndNotify(int workFlowHdrId, int personId, int wfFieldId, string medicationListText, string actionType, string userName)

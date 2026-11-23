@@ -4,14 +4,17 @@ using AMAR.Domain.HR.Model;
 
 namespace AMAR.DataAccess.EF
 {
-    public class AmarDbContext : DbContext
+    /// <summary>
+    /// کلاس زمینه دیتابیس با نام درخواستی dbContext
+    /// </summary>
+    public class dbContext : DbContext
     {
-        public AmarDbContext() : base("name=AmarDbContext")
+        public dbContext() : base("name=AmarDbContext")
         {
             Configuration.LazyLoadingEnabled = false;
         }
 
-        public AmarDbContext(string connectionString) : base(connectionString)
+        public dbContext(string connectionString) : base(connectionString)
         {
             Configuration.LazyLoadingEnabled = false;
         }
@@ -23,5 +26,14 @@ namespace AMAR.DataAccess.EF
             base.OnModelCreating(modelBuilder);
             modelBuilder.Configurations.Add(new MedicationRequestMapping());
         }
+    }
+
+    /// <summary>
+    /// جهت سازگاری به نام قبلی AmarDbContext ارث‌بری شده است
+    /// </summary>
+    public class AmarDbContext : dbContext
+    {
+        public AmarDbContext() : base() { }
+        public AmarDbContext(string connectionString) : base(connectionString) { }
     }
 }

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using AMAR.Application.Contract.HR.DTO;
 using AMAR.Application.Contract.HR.IService;
 using AMAR.Application.HR.Mapper;
-using AMAR.DataAccess.EF;
 using AMAR.Domain.HR.IRepository;
 using AMAR.Domain.HR.Model;
 
@@ -14,14 +12,11 @@ namespace AMAR.Application.HR.Service
     public class MedicationRequestService : IMedicationRequestService
     {
         private readonly IMedicationRequestRepository _repository;
-        private readonly AmarDbContext _context;
 
-        public MedicationRequestService(
-            IMedicationRequestRepository repository,
-            AmarDbContext context = null)
+        // سرویس فقط و فقط به ریپازیتوری متکی است و هیچ رفرنسی به dbContext ندارد
+        public MedicationRequestService(IMedicationRequestRepository repository)
         {
-            _repository = repository;
-            _context = context ?? new AmarDbContext();
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         // ======================= بخش انباردار =======================
@@ -74,87 +69,14 @@ namespace AMAR.Application.HR.Service
 
         public List<MedicationRequestDTO> GetSecretariatRequests(SecretariatSearchFilterDTO filter)
         {
-            var sql = @"
-                SELECT 
-                    req.UniqId,
-                    req.WorkFlowHdrId,
-                    req.PersonId,
-                    req.ProductId,
-                    req.productName,
-                    req.Qty,
-                    req.DeliveryLocation,
-                    req.ShYear,
-                    req.ShSeason,
-                    req.Status,
-                    req.SnapshotId,
-                    req.SnapshotDate,
-                    req.IssuedDate,
-                    req.IssuedBy,
-                    req.DeliveredDate,
-                    req.DeliveredBy,
-                    ISNULL(p.PersonCode, '') AS PersonCode,
-                    ISNULL(p.FirstName + ' ' + p.LastName, N'نامشخص') AS FullName,
-                    ISNULL(p.NationalCode, '') AS NationalCode,
-                    ISNULL(p.Mobile, '') AS Mobile
-                FROM [gen].[MedicationRequest] req
-                LEFT JOIN [dbo].[Person] p ON req.PersonId = p.PersonId
-                WHERE req.Status = @status
-            ";
+            // درخواست مستقیماً به ریپازیتوری فرستاده شده و دیتا از dbContext در لایه ریپازیتوری لود می‌شود
+            var rawResults = _repository.GetIssuedRequestsWithPersonInfo(
+                filter?.PersonCode,
+                filter?.FullName,
+                filter?.DeliveryLocation
+            );
 
-            var rawResults = _context.Database.SqlQuery<SecretariatRawQueryResult>(
-                sql, 
-                new SqlParameter("@status", (int)MedicationStatus.Issued)
-            ).ToList();
-
-            IEnumerable<SecretariatRawQueryResult> filtered = rawResults;
-
-            if (filter != null)
-            {
-                if (!string.IsNullOrWhiteSpace(filter.PersonCode))
-                {
-                    filtered = filtered.Where(x => x.PersonCode != null && x.PersonCode.Contains(filter.PersonCode.Trim()));
-                }
-
-                if (!string.IsNullOrWhiteSpace(filter.FullName))
-                {
-                    filtered = filtered.Where(x => x.FullName != null && x.FullName.Contains(filter.FullName.Trim()));
-                }
-
-                if (!string.IsNullOrWhiteSpace(filter.DeliveryLocation))
-                {
-                    filtered = filtered.Where(x => x.DeliveryLocation != null && x.DeliveryLocation.Equals(filter.DeliveryLocation.Trim(), StringComparison.OrdinalIgnoreCase));
-                }
-            }
-
-            var dtos = filtered.Select(x => new MedicationRequestDTO
-            {
-                UniqId = x.UniqId,
-                WorkFlowHdrId = x.WorkFlowHdrId,
-                PersonId = x.PersonId,
-                ProductId = x.ProductId,
-                productName = x.productName,
-                Qty = x.Qty,
-                DeliveryLocation = x.DeliveryLocation,
-                ShYear = x.ShYear,
-                ShSeason = x.ShSeason,
-                Status = x.Status,
-                StatusTitle = MedicationRequestMapper.GetStatusTitle(x.Status),
-                SnapshotId = x.SnapshotId,
-                SnapshotDate = x.SnapshotDate,
-                SnapshotDateShamsi = x.SnapshotDate.ToShamsi(),
-                IssuedDate = x.IssuedDate,
-                IssuedDateShamsi = x.IssuedDate.ToShamsi(),
-                IssuedBy = x.IssuedBy,
-                DeliveredDate = x.DeliveredDate,
-                DeliveredDateShamsi = x.DeliveredDate.ToShamsi(),
-                DeliveredBy = x.DeliveredBy,
-                PersonCode = x.PersonCode,
-                FullName = x.FullName,
-                NationalCode = x.NationalCode,
-                Mobile = x.Mobile
-            }).OrderByDescending(x => x.IssuedDate).ToList();
-
-            return dtos;
+            return rawResults.Select(MedicationRequestMapper.ToDTO).ToList();
         }
 
         public void DeliverMedications(List<int> selectedUniqIds, string userName, int deliveryWFFieldId)
@@ -167,36 +89,7 @@ namespace AMAR.Application.HR.Service
 
         public List<string> GetDeliveryLocations()
         {
-            return _context.MedicationRequests
-                .Where(x => x.DeliveryLocation != null && x.DeliveryLocation != "")
-                .Select(x => x.DeliveryLocation)
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
+            return _repository.GetDeliveryLocations();
         }
-    }
-
-    public class SecretariatRawQueryResult
-    {
-        public int UniqId { get; set; }
-        public int WorkFlowHdrId { get; set; }
-        public int PersonId { get; set; }
-        public int ProductId { get; set; }
-        public string productName { get; set; }
-        public int Qty { get; set; }
-        public string DeliveryLocation { get; set; }
-        public int? ShYear { get; set; }
-        public string ShSeason { get; set; }
-        public int Status { get; set; }
-        public Guid? SnapshotId { get; set; }
-        public DateTime? SnapshotDate { get; set; }
-        public DateTime? IssuedDate { get; set; }
-        public string IssuedBy { get; set; }
-        public DateTime? DeliveredDate { get; set; }
-        public string DeliveredBy { get; set; }
-        public string PersonCode { get; set; }
-        public string FullName { get; set; }
-        public string NationalCode { get; set; }
-        public string Mobile { get; set; }
     }
 }

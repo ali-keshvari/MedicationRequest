@@ -18,7 +18,9 @@ namespace AMAR.Domain.HR.IRepository
 
         // متدهای دبیرخانه
         List<MedicationRequest> GetIssuedRequests();
+        List<MedicationRequestWithPerson> GetIssuedRequestsWithPersonInfo(string personCode = null, string fullName = null, string deliveryLocation = null);
         void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId);
+        List<string> GetDeliveryLocations();
 
         // اجرای پراسیجر الحاق فرآیند و ارسال پیامک/ایمیل
         void SaveWorkflowAndNotify(int workFlowHdrId, int personId, int wfFieldId, string medicationListText, string actionType, string userName);
