@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using AMAR.Domain.HR.IRepository;
@@ -114,59 +115,31 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 .ToList();
         }
 
-        public List<MedicationRequestWithPerson> GetIssuedRequestsWithPersonInfo(string personCode = null, string fullName = null, string deliveryLocation = null)
+        /// <summary>
+        /// واکشی داروهای حواله شده به همراه اطلاعات Person از طریق Include مستقیم EF
+        /// </summary>
+        public List<MedicationRequest> GetIssuedRequestsWithPerson(string personCode = null, string fullName = null, string deliveryLocation = null)
         {
-            var sql = @"
-                SELECT 
-                    req.UniqId,
-                    req.WorkFlowHdrId,
-                    req.PersonId,
-                    req.ProductId,
-                    req.productName,
-                    req.Qty,
-                    req.DeliveryLocation,
-                    req.ShYear,
-                    req.ShSeason,
-                    req.Status,
-                    req.SnapshotId,
-                    req.SnapshotDate,
-                    req.IssuedDate,
-                    req.IssuedBy,
-                    req.DeliveredDate,
-                    req.DeliveredBy,
-                    req.CreatedDate,
-                    ISNULL(p.PersonCode, '') AS PersonCode,
-                    ISNULL(p.FirstName + ' ' + p.LastName, N'نامشخص') AS FullName,
-                    ISNULL(p.NationalCode, '') AS NationalCode,
-                    ISNULL(p.Mobile, '') AS Mobile
-                FROM [gen].[MedicationRequest] req
-                LEFT JOIN [dbo].[Person] p ON req.PersonId = p.PersonId
-                WHERE req.Status = @status
-            ";
-
-            var results = _context.Database.SqlQuery<MedicationRequestWithPerson>(
-                sql,
-                new SqlParameter("@status", (int)MedicationStatus.Issued)
-            ).ToList();
-
-            IEnumerable<MedicationRequestWithPerson> filtered = results;
+            var query = _context.MedicationRequests
+                .Include(x => x.Person)
+                .Where(x => x.Status == (int)MedicationStatus.Issued);
 
             if (!string.IsNullOrWhiteSpace(personCode))
             {
-                filtered = filtered.Where(x => x.PersonCode != null && x.PersonCode.Contains(personCode.Trim()));
+                query = query.Where(x => x.Person != null && x.Person.PersonCode.Contains(personCode.Trim()));
             }
 
             if (!string.IsNullOrWhiteSpace(fullName))
             {
-                filtered = filtered.Where(x => x.FullName != null && x.FullName.Contains(fullName.Trim()));
+                query = query.Where(x => x.Person != null && (x.Person.FirstName + " " + x.Person.LastName).Contains(fullName.Trim()));
             }
 
             if (!string.IsNullOrWhiteSpace(deliveryLocation))
             {
-                filtered = filtered.Where(x => x.DeliveryLocation != null && x.DeliveryLocation.Equals(deliveryLocation.Trim(), StringComparison.OrdinalIgnoreCase));
+                query = query.Where(x => x.DeliveryLocation != null && x.DeliveryLocation.Equals(deliveryLocation.Trim(), StringComparison.OrdinalIgnoreCase));
             }
 
-            return filtered.OrderByDescending(x => x.IssuedDate).ToList();
+            return query.OrderByDescending(x => x.IssuedDate).ToList();
         }
 
         public void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId)

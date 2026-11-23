@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="AmarDbContext.cs" />
     <Compile Include="Mapping\HR\MedicationRequestMapping.cs" />
+    <Compile Include="Mapping\HR\PersonMapping.cs" />
     <Compile Include="Repository\HR\MedicationRequestRepository.cs" />
   </ItemGroup>
   <ItemGroup>

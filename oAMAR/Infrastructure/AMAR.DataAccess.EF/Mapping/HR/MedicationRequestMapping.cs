@@ -45,6 +45,11 @@ namespace AMAR.DataAccess.EF.Mapping.HR
             Property(x => x.DeliveredDate).IsOptional();
             Property(x => x.DeliveredBy).HasMaxLength(100).IsOptional();
             Property(x => x.CreatedDate).IsRequired();
+
+            // نگاشت ارتباط با موجودیت Person جهت امکان Include مستقیم
+            HasOptional(x => x.Person)
+                .WithMany()
+                .HasForeignKey(x => x.PersonId);
         }
     }
 }

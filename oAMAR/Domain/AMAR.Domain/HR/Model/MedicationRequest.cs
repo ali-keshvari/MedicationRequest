@@ -34,16 +34,8 @@ namespace AMAR.Domain.HR.Model
         public DateTime? DeliveredDate { get; set; }
         public string DeliveredBy { get; set; }
         public DateTime CreatedDate { get; set; }
-    }
 
-    /// <summary>
-    /// مدل خروجی درخواست دارو همراه با مشخصات فردی (حاصل Join در ریپازیتوری)
-    /// </summary>
-    public class MedicationRequestWithPerson : MedicationRequest
-    {
-        public string PersonCode { get; set; }
-        public string FullName { get; set; }
-        public string NationalCode { get; set; }
-        public string Mobile { get; set; }
+        // ارتباط ناوبری با جدول شخص جهت Include شدن مستقیم
+        public virtual Person Person { get; set; }
     }
 }

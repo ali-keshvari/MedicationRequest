@@ -13,7 +13,6 @@ namespace AMAR.Application.HR.Service
     {
         private readonly IMedicationRequestRepository _repository;
 
-        // سرویس فقط و فقط به ریپازیتوری متکی است و هیچ رفرنسی به dbContext ندارد
         public MedicationRequestService(IMedicationRequestRepository repository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -69,14 +68,14 @@ namespace AMAR.Application.HR.Service
 
         public List<MedicationRequestDTO> GetSecretariatRequests(SecretariatSearchFilterDTO filter)
         {
-            // درخواست مستقیماً به ریپازیتوری فرستاده شده و دیتا از dbContext در لایه ریپازیتوری لود می‌شود
-            var rawResults = _repository.GetIssuedRequestsWithPersonInfo(
+            // فراخوانی ریپازیتوری که Person را به صورت Include واکشی کرده است
+            var list = _repository.GetIssuedRequestsWithPerson(
                 filter?.PersonCode,
                 filter?.FullName,
                 filter?.DeliveryLocation
             );
 
-            return rawResults.Select(MedicationRequestMapper.ToDTO).ToList();
+            return list.Select(MedicationRequestMapper.ToDTO).ToList();
         }
 
         public void DeliverMedications(List<int> selectedUniqIds, string userName, int deliveryWFFieldId)

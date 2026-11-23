@@ -20,11 +20,13 @@ namespace AMAR.DataAccess.EF
         }
 
         public virtual DbSet<MedicationRequest> MedicationRequests { get; set; }
+        public virtual DbSet<Person> Persons { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Configurations.Add(new MedicationRequestMapping());
+            modelBuilder.Configurations.Add(new PersonMapping());
         }
     }
 

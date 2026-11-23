@@ -16,9 +16,9 @@ namespace AMAR.Domain.HR.IRepository
         List<MedicationRequest> GetSnapshottedRequests(Guid? snapshotId = null);
         void IssueRemittance(List<int> uniqIds, string userName, int issueWFFieldId);
 
-        // متدهای دبیرخانه
+        // متدهای دبیرخانه (اطلاعات شخص با Include لود می‌شود)
         List<MedicationRequest> GetIssuedRequests();
-        List<MedicationRequestWithPerson> GetIssuedRequestsWithPersonInfo(string personCode = null, string fullName = null, string deliveryLocation = null);
+        List<MedicationRequest> GetIssuedRequestsWithPerson(string personCode = null, string fullName = null, string deliveryLocation = null);
         void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId);
         List<string> GetDeliveryLocations();
 

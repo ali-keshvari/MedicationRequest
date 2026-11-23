@@ -37,7 +37,7 @@ namespace AMAR.Application.HR.Mapper
         {
             if (entity == null) return null;
 
-            var dto = new MedicationRequestDTO
+            return new MedicationRequestDTO
             {
                 UniqId = entity.UniqId,
                 WorkFlowHdrId = entity.WorkFlowHdrId,
@@ -61,18 +61,14 @@ namespace AMAR.Application.HR.Mapper
 
                 DeliveredDate = entity.DeliveredDate,
                 DeliveredDateShamsi = entity.DeliveredDate.ToShamsi(),
-                DeliveredBy = entity.DeliveredBy
+                DeliveredBy = entity.DeliveredBy,
+
+                // مستقیماً از موجودیت Person که include شده خوانده می‌شود
+                PersonCode = entity.Person?.PersonCode,
+                FullName = entity.Person != null ? entity.Person.FullName : null,
+                NationalCode = entity.Person?.NationalCode,
+                Mobile = entity.Person?.Mobile
             };
-
-            if (entity is MedicationRequestWithPerson withPerson)
-            {
-                dto.PersonCode = withPerson.PersonCode;
-                dto.FullName = withPerson.FullName;
-                dto.NationalCode = withPerson.NationalCode;
-                dto.Mobile = withPerson.Mobile;
-            }
-
-            return dto;
         }
     }
 }
