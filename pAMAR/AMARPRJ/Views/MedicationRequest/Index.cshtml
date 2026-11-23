@@ -1,0 +1,83 @@
+@{
+    ViewBag.Title = "سامانه مدیریت و توزیع درخواست‌های دارو";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <!-- Hero Banner -->
+    <div class="card card-custom border-0 shadow-lg text-white mb-5" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+        <div class="card-body p-5 text-center">
+            <div class="d-inline-flex p-3 rounded-circle bg-white bg-opacity-10 mb-3">
+                <i class="fa-solid fa-notes-medical fs-1 text-warning"></i>
+            </div>
+            <h1 class="display-6 fw-bold mb-3">سامانه جامع توزیع و تحویل داروی پرسنل</h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 700px;">
+                یکپارچه‌سازی فرآیند کارتابل تایید پزشک طب کار، مدیریت اسنپ‌شات‌های انبار، صدور مکانیزه حواله و تحویل نهایی داروها در دبیرخانه
+            </p>
+        </div>
+    </div>
+
+    <!-- Process Workflow Timeline -->
+    <div class="row g-4 mb-5 text-center">
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-4 border-top border-primary border-4">
+                <div class="text-primary fs-2 mb-2"><i class="fa-solid fa-user-pen"></i></div>
+                <h6 class="fw-bold">۱. ثبت توسط پرسنل</h6>
+                <p class="small text-muted mb-0">درخواست اقلام دارویی مورد نیاز توسط پرسنل سازمان در سامانه فرآیند</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-4 border-top border-info border-4">
+                <div class="text-info fs-2 mb-2"><i class="fa-solid fa-user-doctor"></i></div>
+                <h6 class="fw-bold">۲. تایید پزشک طب کار</h6>
+                <p class="small text-muted mb-0">بررسی پزشکی و تایید اقلام مجاز و درج در جدول MedicationRequest</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-4 border-top border-warning border-4">
+                <div class="text-warning fs-2 mb-2"><i class="fa-solid fa-boxes-packing"></i></div>
+                <h6 class="fw-bold">۳. صدور حواله انبار</h6>
+                <p class="small text-muted mb-0">اسنپ‌شات لحظه‌ای، انتخاب اقلام قابل تامین و الحاق در فرم و پیامک/ایمیل</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom h-100 p-4 border-top border-success border-4">
+                <div class="text-success fs-2 mb-2"><i class="fa-solid fa-handshake"></i></div>
+                <h6 class="fw-bold">۴. تحویل دبیرخانه</h6>
+                <p class="small text-muted mb-0">جستجو با کد پرسنلی و نام، تحویل فیزیکی دارو و بروزرسانی نهایی فرآیند</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Cartables -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card card-custom h-100 p-4 text-center">
+                <div class="mb-3 text-primary fs-1">
+                    <i class="fa-solid fa-warehouse"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">کارتابل انباردار</h3>
+                <p class="text-muted mb-4">
+                    مشاهده تقاضای تجمیعی داروها، ثبت Snapshot لحظه‌ای و صدور حواله برای اقلام آماده تحویل به همراه ارسال نوتیفیکیشن
+                </p>
+                <a href="@Url.Action("Warehouse", "MedicationRequest")" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
+                    <i class="fa-solid fa-arrow-left ms-2"></i> ورود به کارتابل انباردار
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-custom h-100 p-4 text-center">
+                <div class="mb-3 text-success fs-1">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">کارتابل دبیرخانه</h3>
+                <p class="text-muted mb-4">
+                    مشاهده داروهای حواله شده همراه با تاریخ صدور حواله، فیلتر با کد پرسنلی/نام/محل تحویل و ثبت تحویل به همکار
+                </p>
+                <a href="@Url.Action("Secretariat", "MedicationRequest")" class="btn btn-success btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
+                    <i class="fa-solid fa-arrow-left ms-2"></i> ورود به کارتابل دبیرخانه
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+## Visual Studio & .NET GitIgnore
+[Oo]bj/
+[Bb]in/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+packages/
+*.nupkg
+TestResults/
+*.log

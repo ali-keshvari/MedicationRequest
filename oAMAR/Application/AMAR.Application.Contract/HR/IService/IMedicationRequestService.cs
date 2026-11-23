@@ -1,0 +1,54 @@
+using System;
+using System.Collections.Generic;
+using AMAR.Application.Contract.HR.DTO;
+
+namespace AMAR.Application.Contract.HR.IService
+{
+    public interface IMedicationRequestService
+    {
+        // ======================= عملیات انباردار =======================
+        
+        /// <summary>
+        /// دریافت لیست تجمیعی به ازای هر دارو جهت نمایش تعداد درخواست‌ها به انباردار
+        /// </summary>
+        List<MedicationSummaryDTO> GetPendingMedicationSummary();
+
+        /// <summary>
+        /// دریافت ریز رکوردهای در انتظار قبل از اسنپ شات
+        /// </summary>
+        List<MedicationRequestDTO> GetPendingRequests();
+
+        /// <summary>
+        /// ایجاد اسنپ شات لحظه‌ای برای درخواست‌های تایید شده
+        /// </summary>
+        Guid TakeWarehouseSnapshot(string userName);
+
+        /// <summary>
+        /// دریافت لیست رکوردهای اسنپ شات شده جهت انتخاب و صدور حواله
+        /// </summary>
+        List<MedicationRequestDTO> GetSnapshottedRequests(Guid? snapshotId = null);
+
+        /// <summary>
+        /// صدور یکجای حواله برای داروهای انتخاب شده + Concat بر اساس WorkFlowHdrId و PersonId و ذخیره در فرم و ارسال نوتیفیکیشن
+        /// </summary>
+        void IssueWarehouseRemittance(List<int> selectedUniqIds, string userName, int issueWFFieldId);
+
+
+        // ======================= عملیات دبیرخانه =======================
+
+        /// <summary>
+        /// دریافت لیست داروهای حواله کشیده شده به همراه تاریخ صدور حواله، با امکان فیلتر بر اساس کد پرسنلی، نام و محل تحویل
+        /// </summary>
+        List<MedicationRequestDTO> GetSecretariatRequests(SecretariatSearchFilterDTO filter);
+
+        /// <summary>
+        /// ثبت تحویل دارو به پرسنل مراجعه‌کننده + Concat بر اساس WorkFlowHdrId و PersonId و ذخیره در فیلد دیگر فرم و ارسال نوتیفیکیشن
+        /// </summary>
+        void DeliverMedications(List<int> selectedUniqIds, string userName, int deliveryWFFieldId);
+
+        /// <summary>
+        /// دریافت لیست محل‌های تحویل جهت فیلتر
+        /// </summary>
+        List<string> GetDeliveryLocations();
+    }
+}
