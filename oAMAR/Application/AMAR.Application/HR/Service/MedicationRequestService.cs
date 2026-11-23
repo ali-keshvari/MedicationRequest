@@ -175,4 +175,28 @@ namespace AMAR.Application.HR.Service
                 .ToList();
         }
     }
+
+    public class SecretariatRawQueryResult
+    {
+        public int UniqId { get; set; }
+        public int WorkFlowHdrId { get; set; }
+        public int PersonId { get; set; }
+        public int ProductId { get; set; }
+        public string productName { get; set; }
+        public int Qty { get; set; }
+        public string DeliveryLocation { get; set; }
+        public int? ShYear { get; set; }
+        public string ShSeason { get; set; }
+        public int Status { get; set; }
+        public Guid? SnapshotId { get; set; }
+        public DateTime? SnapshotDate { get; set; }
+        public DateTime? IssuedDate { get; set; }
+        public string IssuedBy { get; set; }
+        public DateTime? DeliveredDate { get; set; }
+        public string DeliveredBy { get; set; }
+        public string PersonCode { get; set; }
+        public string FullName { get; set; }
+        public string NationalCode { get; set; }
+        public string Mobile { get; set; }
+    }
 }
