@@ -108,10 +108,47 @@
             transform: translateY(-3px);
         }
 
-        .stat-card.blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
-        .stat-card.emerald { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
-        .stat-card.amber { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); }
-        .stat-card.purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+        .stat-card.blue { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+        .stat-card.emerald { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .stat-card.amber { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+        .stat-card.purple { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }
+        .stat-card.cyan { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
+        .stat-card.teal { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
+
+        /* Nav-Pills Styling for high contrast and readability */
+        .nav-pills .nav-link {
+            color: #1e293b !important;
+            background-color: #ffffff !important;
+            border: 2px solid #cbd5e1 !important;
+            font-weight: 700;
+            padding: 0.6rem 1.4rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .nav-pills .nav-link i {
+            color: #475569;
+        }
+
+        .nav-pills .nav-link:hover {
+            color: #1d4ed8 !important;
+            background-color: #f1f5f9 !important;
+            border-color: #3b82f6 !important;
+        }
+
+        .nav-pills .nav-link:hover i {
+            color: #2563eb;
+        }
+
+        .nav-pills .nav-link.active {
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+            border-color: #1d4ed8 !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+        }
+
+        .nav-pills .nav-link.active i {
+            color: #ffffff !important;
+        }
 
         .stat-value {
             font-size: 1.85rem;
