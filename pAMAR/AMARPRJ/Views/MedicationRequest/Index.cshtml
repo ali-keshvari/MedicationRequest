@@ -5,8 +5,8 @@
     var authUserName = (User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)) ? User.Identity.Name : "";
     var displayUserName = !string.IsNullOrEmpty(authUserName) ? authUserName : "کاربر سیستم";
 
-    bool canWarehouse = !string.IsNullOrEmpty(authUserName) && AMARPRJ.Controllers.genClass.CheckAccess(authUserName, "MedicationRequest_Warehouse");
-    bool canSecretariat = !string.IsNullOrEmpty(authUserName) && AMARPRJ.Controllers.genClass.CheckAccess(authUserName, "MedicationRequest_Secretariat");
+    bool canWarehouse = AMARPRJ.Controllers.MedicationRequestController.CheckUserAccess("MedicationRequest_Warehouse", authUserName);
+    bool canSecretariat = AMARPRJ.Controllers.MedicationRequestController.CheckUserAccess("MedicationRequest_Secretariat", authUserName);
 }
 
 <div class="container py-4">

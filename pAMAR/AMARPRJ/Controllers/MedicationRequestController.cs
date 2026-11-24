@@ -45,13 +45,53 @@ namespace AMARPRJ.Controllers
         }
 
         // =========================================================================
+        // متدهای بررسی دسترسی متمرکز (Access Control Helpers)
+        // =========================================================================
+        /// <summary>
+        /// بررسی متمرکز دسترسی کاربر به بخش‌های مختلف ماژول دارو
+        /// </summary>
+        public static bool CheckUserAccess(string accessName, string userName = null)
+        {
+            if (string.IsNullOrEmpty(userName))
+            {
+                if (System.Web.HttpContext.Current != null &&
+                    System.Web.HttpContext.Current.User != null &&
+                    System.Web.HttpContext.Current.User.Identity != null)
+                {
+                    userName = System.Web.HttpContext.Current.User.Identity.Name;
+                }
+            }
+
+            if (string.IsNullOrEmpty(userName))
+                return false;
+
+            return genClass.CheckAccess(userName, accessName);
+        }
+
+        /// <summary>
+        /// دسترسی به کارتابل انباردار و آرشیو حواله
+        /// </summary>
+        public static bool CanAccessWarehouse(string userName = null)
+        {
+            return CheckUserAccess(ACCESS_WAREHOUSE, userName);
+        }
+
+        /// <summary>
+        /// دسترسی به کارتابل دبیرخانه
+        /// </summary>
+        public static bool CanAccessSecretariat(string userName = null)
+        {
+            return CheckUserAccess(ACCESS_SECRETARIAT, userName);
+        }
+
+        // =========================================================================
         // صفحه اصلی / داشبورد و هدایت بر اساس دسترسی
         // =========================================================================
         public ActionResult Index()
         {
-            bool hasWarehouse = genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE);
-            bool hasSecretariat = genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT);
-            bool hasMain = genClass.CheckAccess(User.Identity.Name, ACCESS_MAIN);
+            bool hasWarehouse = CheckUserAccess( ACCESS_WAREHOUSE);
+            bool hasSecretariat = CheckUserAccess( ACCESS_SECRETARIAT);
+            bool hasMain = CheckUserAccess( ACCESS_MAIN);
 
             if (!hasMain && !hasWarehouse && !hasSecretariat)
             {
@@ -86,7 +126,7 @@ namespace AMARPRJ.Controllers
         // =========================================================================
         public ActionResult Warehouse(Guid? snapshotId = null)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE))
+            if (!CheckUserAccess( ACCESS_WAREHOUSE))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
@@ -107,7 +147,7 @@ namespace AMARPRJ.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult TakeSnapshot()
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE))
+            if (!CheckUserAccess( ACCESS_WAREHOUSE))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
@@ -135,7 +175,7 @@ namespace AMARPRJ.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult IssueRemittance(List<int> selectedUniqIds, int? wfFieldId)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE))
+            if (!CheckUserAccess( ACCESS_WAREHOUSE))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
@@ -166,7 +206,7 @@ namespace AMARPRJ.Controllers
         // =========================================================================
         public ActionResult RemittanceArchive(Guid? batchId = null)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE) && !genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            if (!CheckUserAccess( ACCESS_WAREHOUSE) && !CheckUserAccess( ACCESS_SECRETARIAT))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
@@ -183,7 +223,7 @@ namespace AMARPRJ.Controllers
 
         public ActionResult ExportPackagingToExcel(Guid? batchId = null)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE) && !genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            if (!CheckUserAccess( ACCESS_WAREHOUSE) && !CheckUserAccess( ACCESS_SECRETARIAT))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
@@ -237,7 +277,7 @@ namespace AMARPRJ.Controllers
 
         public ActionResult PrintPackagingLabels(Guid? batchId = null)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE) && !genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            if (!CheckUserAccess( ACCESS_WAREHOUSE) && !CheckUserAccess( ACCESS_SECRETARIAT))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
@@ -251,7 +291,7 @@ namespace AMARPRJ.Controllers
         // =========================================================================
         public ActionResult Secretariat(SecretariatSearchFilterDTO filter)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            if (!CheckUserAccess( ACCESS_SECRETARIAT))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_SECRETARIAT });
             }
@@ -269,7 +309,7 @@ namespace AMARPRJ.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeliverMedications(List<int> selectedUniqIds, int? wfFieldId)
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            if (!CheckUserAccess( ACCESS_SECRETARIAT))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_SECRETARIAT });
             }
