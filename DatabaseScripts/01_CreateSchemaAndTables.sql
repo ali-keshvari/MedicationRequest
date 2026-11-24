@@ -21,7 +21,7 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[gen].[MedicationRequest]') AND type in (N'U'))
 BEGIN
     CREATE TABLE [gen].[MedicationRequest](
-        [UniqId] [int] IDENTITY(1,1) NOT NULL,
+        [MedicationRequestId] [int] IDENTITY(1,1) NOT NULL,
         [WorkFlowHdrId] [int] NOT NULL,
         [PersonId] [int] NOT NULL,
         [ProductId] [int] NOT NULL,
@@ -45,7 +45,7 @@ BEGIN
         [DeliveredBy] [nvarchar](100) NULL,         -- نام کاربری تحویل‌دهنده دبیرخانه
         [CreatedDate] [datetime] NOT NULL CONSTRAINT [DF_MedicationRequest_CreatedDate] DEFAULT (GETDATE()),
 
-        CONSTRAINT [PK_MedicationRequest] PRIMARY KEY CLUSTERED ([UniqId] ASC)
+        CONSTRAINT [PK_MedicationRequest] PRIMARY KEY CLUSTERED ([MedicationRequestId] ASC)
     );
 
     CREATE NONCLUSTERED INDEX [IX_MedicationRequest_Status] 

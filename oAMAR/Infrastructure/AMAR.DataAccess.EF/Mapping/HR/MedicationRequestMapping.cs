@@ -13,6 +13,7 @@ namespace AMAR.DataAccess.EF.Mapping.HR
 
             HasKey(x => x.UniqId);
             Property(x => x.UniqId)
+                .HasColumnName("MedicationRequestId")
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity)
                 .IsRequired();
 
