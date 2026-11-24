@@ -204,33 +204,43 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 @{
                     var currentAction = ViewContext.RouteData.Values["action"] != null ? ViewContext.RouteData.Values["action"].ToString() : "";
-                    var currentUserName = (User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)) ? User.Identity.Name : "کاربر سیستم";
+                    var authUserName = (User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)) ? User.Identity.Name : "";
+                    var displayUserName = !string.IsNullOrEmpty(authUserName) ? authUserName : "کاربر سیستم";
+
+                    bool canWarehouse = !string.IsNullOrEmpty(authUserName) && AMARPRJ.Controllers.genClass.CheckAccess(authUserName, "MedicationRequest_Warehouse");
+                    bool canSecretariat = !string.IsNullOrEmpty(authUserName) && AMARPRJ.Controllers.genClass.CheckAccess(authUserName, "MedicationRequest_Secretariat");
                 }
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link @(currentAction == "Warehouse" ? "active" : "")" 
-                           href="@Url.Action("Warehouse", "MedicationRequest")">
-                            <i class="fa-solid fa-warehouse ms-1"></i> کارتابل انباردار
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentAction == "RemittanceArchive" ? "active" : "")" 
-                           href="@Url.Action("RemittanceArchive", "MedicationRequest")">
-                            <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله و خروجی اکسل
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentAction == "Secretariat" ? "active" : "")" 
-                           href="@Url.Action("Secretariat", "MedicationRequest")">
-                            <i class="fa-solid fa-envelope-open-text ms-1"></i> کارتابل دبیرخانه
-                        </a>
-                    </li>
+                    @if (canWarehouse)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "Warehouse" ? "active" : "")" 
+                               href="@Url.Action("Warehouse", "MedicationRequest")">
+                                <i class="fa-solid fa-warehouse ms-1"></i> کارتابل انباردار
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "RemittanceArchive" ? "active" : "")" 
+                               href="@Url.Action("RemittanceArchive", "MedicationRequest")">
+                                <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله و خروجی اکسل
+                            </a>
+                        </li>
+                    }
+                    @if (canSecretariat)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "Secretariat" ? "active" : "")" 
+                               href="@Url.Action("Secretariat", "MedicationRequest")">
+                                <i class="fa-solid fa-envelope-open-text ms-1"></i> کارتابل دبیرخانه
+                            </a>
+                        </li>
+                    }
                 </ul>
 
                 <div class="d-flex align-items-center text-white gap-3">
                     <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
                         <i class="fa-solid fa-user-circle ms-1 text-primary"></i>
-                        @currentUserName
+                        @displayUserName
                     </span>
                     <span class="text-white-50 small">
                         <i class="fa-solid fa-calendar-day ms-1"></i>

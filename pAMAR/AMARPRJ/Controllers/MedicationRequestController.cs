@@ -49,13 +49,14 @@ namespace AMARPRJ.Controllers
         // =========================================================================
         public ActionResult Index()
         {
-            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_MAIN))
+            bool hasWarehouse = genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE);
+            bool hasSecretariat = genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT);
+            bool hasMain = genClass.CheckAccess(User.Identity.Name, ACCESS_MAIN);
+
+            if (!hasMain && !hasWarehouse && !hasSecretariat)
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_MAIN });
             }
-
-            bool hasWarehouse = genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE);
-            bool hasSecretariat = genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT);
 
             // اگر کاربر همزمان به هر دو کارتابل دسترسی دارد، داشبورد انتخاب کارتابل نمایش داده شود
             if (hasWarehouse && hasSecretariat)
@@ -77,7 +78,7 @@ namespace AMARPRJ.Controllers
                 return RedirectToAction("Secretariat");
             }
 
-            return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_MAIN });
+            return View();
         }
 
         // =========================================================================

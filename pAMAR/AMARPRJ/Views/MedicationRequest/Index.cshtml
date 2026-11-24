@@ -1,6 +1,12 @@
 ﻿@{
     ViewBag.Title = "سامانه مدیریت و توزیع درخواست‌های دارو";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var authUserName = (User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)) ? User.Identity.Name : "";
+    var displayUserName = !string.IsNullOrEmpty(authUserName) ? authUserName : "کاربر سیستم";
+
+    bool canWarehouse = !string.IsNullOrEmpty(authUserName) && AMARPRJ.Controllers.genClass.CheckAccess(authUserName, "MedicationRequest_Warehouse");
+    bool canSecretariat = !string.IsNullOrEmpty(authUserName) && AMARPRJ.Controllers.genClass.CheckAccess(authUserName, "MedicationRequest_Secretariat");
 }
 
 <div class="container py-4">
@@ -50,34 +56,52 @@
     </div>
 
     <!-- Quick Access Cartables -->
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card card-custom h-100 p-4 text-center">
-                <div class="mb-3 text-primary fs-1">
-                    <i class="fa-solid fa-warehouse"></i>
+    <div class="row g-4 justify-content-center">
+        @if (canWarehouse)
+        {
+            <div class="@(canSecretariat ? "col-md-6" : "col-md-8")">
+                <div class="card card-custom h-100 p-4 text-center">
+                    <div class="mb-3 text-primary fs-1">
+                        <i class="fa-solid fa-warehouse"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">کارتابل انباردار</h3>
+                    <p class="text-muted mb-4">
+                        مشاهده تقاضای تجمیعی داروها، ثبت Snapshot لحظه‌ای و صدور حواله برای اقلام آماده تحویل به همراه ارسال نوتیفیکیشن
+                    </p>
+                    <a href="@Url.Action("Warehouse", "MedicationRequest")" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
+                        <i class="fa-solid fa-arrow-left ms-2"></i> ورود به کارتابل انباردار
+                    </a>
                 </div>
-                <h3 class="fw-bold text-dark mb-2">کارتابل انباردار</h3>
-                <p class="text-muted mb-4">
-                    مشاهده تقاضای تجمیعی داروها، ثبت Snapshot لحظه‌ای و صدور حواله برای اقلام آماده تحویل به همراه ارسال نوتیفیکیشن
-                </p>
-                <a href="@Url.Action("Warehouse", "MedicationRequest")" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
-                    <i class="fa-solid fa-arrow-left ms-2"></i> ورود به کارتابل انباردار
-                </a>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card card-custom h-100 p-4 text-center">
-                <div class="mb-3 text-success fs-1">
-                    <i class="fa-solid fa-building-user"></i>
+        }
+        @if (canSecretariat)
+        {
+            <div class="@(canWarehouse ? "col-md-6" : "col-md-8")">
+                <div class="card card-custom h-100 p-4 text-center">
+                    <div class="mb-3 text-success fs-1">
+                        <i class="fa-solid fa-building-user"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">کارتابل دبیرخانه</h3>
+                    <p class="text-muted mb-4">
+                        مشاهده داروهای حواله شده همراه با تاریخ صدور حواله، فیلتر با کد پرسنلی/نام/محل تحویل و ثبت تحویل به همکار
+                    </p>
+                    <a href="@Url.Action("Secretariat", "MedicationRequest")" class="btn btn-success btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
+                        <i class="fa-solid fa-arrow-left ms-2"></i> ورود به کارتابل دبیرخانه
+                    </a>
                 </div>
-                <h3 class="fw-bold text-dark mb-2">کارتابل دبیرخانه</h3>
-                <p class="text-muted mb-4">
-                    مشاهده داروهای حواله شده همراه با تاریخ صدور حواله، فیلتر با کد پرسنلی/نام/محل تحویل و ثبت تحویل به همکار
-                </p>
-                <a href="@Url.Action("Secretariat", "MedicationRequest")" class="btn btn-success btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
-                    <i class="fa-solid fa-arrow-left ms-2"></i> ورود به کارتابل دبیرخانه
-                </a>
             </div>
-        </div>
+        }
+        @if (!canWarehouse && !canSecretariat)
+        {
+            <div class="col-md-8">
+                <div class="alert alert-warning text-center p-4 rounded-4 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation fs-2 text-warning mb-2"></i>
+                    <h5 class="fw-bold">عدم دسترسی به کارتابل‌ها</h5>
+                    <p class="mb-0 text-muted">
+                        کاربر گرامی (@displayUserName)، شما در حال حاضر دسترسی لازم جهت مشاهده کارتابل انباردار یا دبیرخانه را ندارید. در صورت نیاز با مدیر سیستم تماس بگیرید.
+                    </p>
+                </div>
+            </div>
+        }
     </div>
 </div>
