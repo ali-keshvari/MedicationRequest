@@ -20,6 +20,7 @@ namespace AMAR.Domain.HR.IRepository
         // متدهای دبیرخانه (اطلاعات شخص با Include لود می‌شود)
         List<MedicationRequest> GetIssuedRequests();
         List<MedicationRequest> GetIssuedRequestsWithPerson(int? personelCode = null, string fullName = null, string deliveryLocation = null);
+        List<MedicationRequest> GetDeliveredRequestsWithPerson(int? personelCode = null, string fullName = null, string deliveryLocation = null);
         void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId);
         List<string> GetDeliveryLocations();
 

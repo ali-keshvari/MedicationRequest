@@ -235,13 +235,40 @@ namespace AMAR.DataAccess.EF.Repository.HR
             return query.OrderByDescending(x => x.IssuedDate).ToList();
         }
 
+        /// <summary>
+        /// واکشی داروهای تحویل شده به همراه تاریخ و لاگ تحویل و اطلاعات Person
+        /// </summary>
+        public List<MedicationRequest> GetDeliveredRequestsWithPerson(int? personelCode = null, string fullName = null, string deliveryLocation = null)
+        {
+            var query = _context.MedicationRequests
+                .Include(x => x.Person)
+                .Where(x => x.Status == (int)MedicationStatus.Delivered);
+
+            if (personelCode.HasValue)
+            {
+                query = query.Where(x => x.Person != null && x.Person.PersonelCode == personelCode.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(fullName))
+            {
+                query = query.Where(x => x.Person != null && (x.Person.FirstName + " " + x.Person.LastName).Contains(fullName.Trim()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(deliveryLocation))
+            {
+                query = query.Where(x => x.DeliveryLocation != null && x.DeliveryLocation.Equals(deliveryLocation.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query.OrderByDescending(x => x.DeliveredDate).ToList();
+        }
+
         public void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId)
         {
             if (uniqIds == null || !uniqIds.Any())
                 return;
 
             var items = _context.MedicationRequests
-                .Where(x => uniqIds.Contains(x.UniqId) && x.Status == (int)MedicationStatus.Issued)
+                .Where(x => uniqIds.Contains(x.MedicationRequestId) && x.Status == (int)MedicationStatus.Issued)
                 .ToList();
 
             if (!items.Any())

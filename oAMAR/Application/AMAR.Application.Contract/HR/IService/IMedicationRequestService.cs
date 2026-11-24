@@ -51,6 +51,7 @@ namespace AMAR.Application.Contract.HR.IService
         /// دریافت لیست داروهای حواله کشیده شده به همراه تاریخ صدور حواله، با امکان فیلتر بر اساس کد پرسنلی، نام و محل تحویل
         /// </summary>
         List<MedicationRequestDTO> GetSecretariatRequests(SecretariatSearchFilterDTO filter);
+        List<MedicationRequestDTO> GetDeliveredRequests(SecretariatSearchFilterDTO filter);
 
         /// <summary>
         /// ثبت تحویل دارو به پرسنل مراجعه‌کننده + Concat بر اساس WorkFlowHdrId و PersonId و ذخیره در فیلد دیگر فرم و ارسال نوتیفیکیشن

@@ -147,6 +147,17 @@ namespace AMAR.Application.HR.Service
             return list.Select(MedicationRequestMapper.ToDTO).ToList();
         }
 
+        public List<MedicationRequestDTO> GetDeliveredRequests(SecretariatSearchFilterDTO filter)
+        {
+            var list = _repository.GetDeliveredRequestsWithPerson(
+                filter?.PersonelCode,
+                filter?.FullName,
+                filter?.DeliveryLocation
+            );
+
+            return list.Select(MedicationRequestMapper.ToDTO).ToList();
+        }
+
         public void DeliverMedications(List<int> selectedUniqIds, string userName, int deliveryWFFieldId)
         {
             if (selectedUniqIds == null || !selectedUniqIds.Any())

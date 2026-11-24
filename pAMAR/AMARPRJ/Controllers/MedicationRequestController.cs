@@ -301,16 +301,18 @@ namespace AMARPRJ.Controllers
         // =========================================================================
         public ActionResult Secretariat(SecretariatSearchFilterDTO filter)
         {
-            if (!CheckUserAccess( ACCESS_SECRETARIAT))
+            if (!CheckUserAccess(ACCESS_SECRETARIAT))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_SECRETARIAT });
             }
 
             var issuedList = _medicationService.GetSecretariatRequests(filter);
+            var deliveredList = _medicationService.GetDeliveredRequests(filter);
 
             ViewBag.Locations = _medicationService.GetDeliveryLocations();
             ViewBag.Filter = filter ?? new SecretariatSearchFilterDTO();
             ViewBag.DefaultWFFieldId = DEFAULT_DELIVERY_WF_FIELD_ID;
+            ViewBag.DeliveredList = deliveredList;
 
             return View(issuedList);
         }
