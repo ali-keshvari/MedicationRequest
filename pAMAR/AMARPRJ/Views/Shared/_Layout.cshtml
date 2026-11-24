@@ -202,21 +202,25 @@
             </button>
 
             <div class="collapse navbar-collapse" id="mainNav">
+                @{
+                    var currentAction = ViewContext.RouteData.Values["action"] != null ? ViewContext.RouteData.Values["action"].ToString() : "";
+                    var currentUserName = (User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)) ? User.Identity.Name : "کاربر سیستم";
+                }
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Warehouse" ? "active" : "")" 
+                        <a class="nav-link @(currentAction == "Warehouse" ? "active" : "")" 
                            href="@Url.Action("Warehouse", "MedicationRequest")">
                             <i class="fa-solid fa-warehouse ms-1"></i> کارتابل انباردار
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "RemittanceArchive" ? "active" : "")" 
+                        <a class="nav-link @(currentAction == "RemittanceArchive" ? "active" : "")" 
                            href="@Url.Action("RemittanceArchive", "MedicationRequest")">
                             <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله و خروجی اکسل
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Secretariat" ? "active" : "")" 
+                        <a class="nav-link @(currentAction == "Secretariat" ? "active" : "")" 
                            href="@Url.Action("Secretariat", "MedicationRequest")">
                             <i class="fa-solid fa-envelope-open-text ms-1"></i> کارتابل دبیرخانه
                         </a>
@@ -226,7 +230,7 @@
                 <div class="d-flex align-items-center text-white gap-3">
                     <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
                         <i class="fa-solid fa-user-circle ms-1 text-primary"></i>
-                        @(User?.Identity?.Name ?? "کاربر سیستم")
+                        @currentUserName
                     </span>
                     <span class="text-white-50 small">
                         <i class="fa-solid fa-calendar-day ms-1"></i>

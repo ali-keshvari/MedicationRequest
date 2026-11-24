@@ -215,11 +215,16 @@
 @section scripts {
 <script>
     // انتخاب همه چک‌باکس‌ها
-    document.getElementById('selectAll')?.addEventListener('change', function () {
-        var checkboxes = document.querySelectorAll('.chk-item');
-        checkboxes.forEach(chk => chk.checked = this.checked);
-        updateCounter();
-    });
+    var selectAllEl = document.getElementById('selectAll');
+    if (selectAllEl) {
+        selectAllEl.addEventListener('change', function () {
+            var checkboxes = document.querySelectorAll('.chk-item');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+            updateCounter();
+        });
+    }
 
     // شمارنده رکوردهای انتخاب شده
     function updateCounter() {
@@ -252,13 +257,18 @@
     }
 
     // فیلتر سریع متنی در جدول
-    document.getElementById('tableSearch')?.addEventListener('keyup', function () {
-        var filter = this.value.toLowerCase();
-        var rows = document.querySelectorAll('.item-row');
-        rows.forEach(function (row) {
-            var medName = row.querySelector('.med-name')?.innerText.toLowerCase() || '';
-            row.style.display = medName.includes(filter) ? '' : 'none';
+    var searchEl = document.getElementById('tableSearch');
+    if (searchEl) {
+        searchEl.addEventListener('keyup', function () {
+            var filter = this.value.toLowerCase();
+            var rows = document.querySelectorAll('.item-row');
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var medNameEl = row.querySelector('.med-name');
+                var medName = medNameEl ? medNameEl.innerText.toLowerCase() : '';
+                row.style.display = medName.indexOf(filter) > -1 ? '' : 'none';
+            }
         });
-    });
+    }
 </script>
 }

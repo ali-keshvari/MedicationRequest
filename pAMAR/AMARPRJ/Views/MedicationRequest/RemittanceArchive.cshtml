@@ -5,8 +5,11 @@
     var batches = ViewBag.Batches as List<AMAR.Application.Contract.HR.DTO.RemittanceBatchSummaryDTO> ?? new List<AMAR.Application.Contract.HR.DTO.RemittanceBatchSummaryDTO>();
     var selectedBatchId = (Guid?)ViewBag.SelectedBatchId;
     var currentBatch = batches.FirstOrDefault(x => x.RemittanceBatchId == selectedBatchId) ?? batches.FirstOrDefault();
-    var totalPersons = Model?.Count ?? 0;
-    var totalItems = Model?.Sum(x => x.TotalItemsCount) ?? 0;
+    var totalPersons = Model != null ? Model.Count : 0;
+    var totalItems = Model != null ? Model.Sum(x => x.TotalItemsCount) : 0;
+    var currentBatchNo = currentBatch != null ? currentBatch.RemittanceNumber : "نامشخص";
+    var currentBatchIssuedBy = currentBatch != null ? currentBatch.IssuedBy : "-";
+    var currentBatchDate = currentBatch != null ? currentBatch.IssuedDateShamsi : "-";
 }
 
 <div class="container-fluid px-4">
@@ -17,8 +20,8 @@
             <div class="stat-card blue">
                 <div>
                     <div class="stat-label">شماره حواله انتخاب شده</div>
-                    <div class="stat-value font-monospace" style="font-size: 1.4rem;">@(currentBatch?.RemittanceNumber ?? "نامشخص")</div>
-                    <div class="small text-white-50 mt-1">صادرکننده: @(currentBatch?.IssuedBy ?? "-")</div>
+                    <div class="stat-value font-monospace" style="font-size: 1.4rem;">@currentBatchNo</div>
+                    <div class="small text-white-50 mt-1">صادرکننده: @currentBatchIssuedBy</div>
                 </div>
                 <div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div>
             </div>
@@ -38,7 +41,7 @@
                 <div>
                     <div class="stat-label">مجموع کل اقلام دارویی</div>
                     <div class="stat-value">@totalItems عدد</div>
-                    <div class="small text-white-50 mt-1">تاریخ حواله: @(currentBatch?.IssuedDateShamsi ?? "-")</div>
+                    <div class="small text-white-50 mt-1">تاریخ حواله: @currentBatchDate</div>
                 </div>
                 <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
             </div>
@@ -109,7 +112,7 @@
                 <i class="fa-solid fa-clipboard-list text-success fs-5"></i>
                 <span>لیست بسته‌بندی دارو به تفکیک پرسنل (جهت درج مشخصات روی بسته دارو توسط کاربر انبار)</span>
             </div>
-            <span class="badge bg-light text-dark border">حواله: @(currentBatch?.RemittanceNumber ?? "-")</span>
+            <span class="badge bg-light text-dark border">حواله: @currentBatchNo</span>
         </div>
         <div class="card-body p-0">
             @if (Model != null && Model.Any())
@@ -223,18 +226,28 @@
 @section scripts {
 <script>
     // جستجوی زنده در جدول
-    document.getElementById('slipSearch')?.addEventListener('keyup', function () {
-        var filter = this.value.toLowerCase().trim();
-        var rows = document.querySelectorAll('.slip-row');
-        rows.forEach(function (row) {
-            var name = row.querySelector('.slip-name')?.innerText.toLowerCase() || '';
-            var loc = row.querySelector('.slip-location')?.innerText.toLowerCase() || '';
-            var meds = row.querySelector('.slip-meds')?.innerText.toLowerCase() || '';
-            var code = row.querySelector('.font-monospace')?.innerText.toLowerCase() || '';
-            var match = name.includes(filter) || loc.includes(filter) || meds.includes(filter) || code.includes(filter);
-            row.style.display = match ? '' : 'none';
+    var searchBox = document.getElementById('slipSearch');
+    if (searchBox) {
+        searchBox.addEventListener('keyup', function () {
+            var filter = this.value.toLowerCase().trim();
+            var rows = document.querySelectorAll('.slip-row');
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var nameEl = row.querySelector('.slip-name');
+                var locEl = row.querySelector('.slip-location');
+                var medsEl = row.querySelector('.slip-meds');
+                var codeEl = row.querySelector('.font-monospace');
+
+                var name = nameEl ? nameEl.innerText.toLowerCase() : '';
+                var loc = locEl ? locEl.innerText.toLowerCase() : '';
+                var meds = medsEl ? medsEl.innerText.toLowerCase() : '';
+                var code = codeEl ? codeEl.innerText.toLowerCase() : '';
+
+                var match = name.indexOf(filter) > -1 || loc.indexOf(filter) > -1 || meds.indexOf(filter) > -1 || code.indexOf(filter) > -1;
+                row.style.display = match ? '' : 'none';
+            }
         });
-    });
+    }
 
     function showPackageModal(name, code, loc, wf, meds) {
         document.getElementById('lblName').innerText = name;

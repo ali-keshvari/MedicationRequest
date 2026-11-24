@@ -1,8 +1,10 @@
 @model List<AMAR.Application.Contract.HR.DTO.MedicationPackagingSlipDTO>
 @{
     Layout = null;
-    var batchNo = Model?.FirstOrDefault()?.RemittanceNumber ?? "All";
-    var issuedDate = Model?.FirstOrDefault()?.IssuedDateShamsi ?? "-";
+    var firstItem = (Model != null && Model.Count > 0) ? Model.FirstOrDefault() : null;
+    var batchNo = (firstItem != null && !string.IsNullOrEmpty(firstItem.RemittanceNumber)) ? firstItem.RemittanceNumber : "All";
+    var issuedDate = (firstItem != null && !string.IsNullOrEmpty(firstItem.IssuedDateShamsi)) ? firstItem.IssuedDateShamsi : "-";
+    var totalPackages = Model != null ? Model.Count : 0;
 }
 
 <!DOCTYPE html>
@@ -147,7 +149,7 @@
     <div class="no-print">
         <div>
             <strong>برچسب‌های بسته‌بندی دارو - حواله شماره: @batchNo</strong>
-            <span style="margin-right: 15px; color: #64748b;">تعداد بسته‌ها: @(Model?.Count ?? 0) نفر | تاریخ حواله: @issuedDate</span>
+            <span style="margin-right: 15px; color: #64748b;">تعداد بسته‌ها: @totalPackages نفر | تاریخ حواله: @issuedDate</span>
         </div>
         <div>
             <button class="btn-print" onclick="window.print();">🖨 چاپ برچسب‌ها</button>
