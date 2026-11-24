@@ -161,6 +161,91 @@ namespace AMARPRJ.Controllers
         }
 
         // =========================================================================
+        // بخش آرشیو حواله‌ها، لیست بسته‌بندی دارو و خروجی اکسل
+        // =========================================================================
+        public ActionResult RemittanceArchive(Guid? batchId = null)
+        {
+            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE) && !genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            {
+                return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
+            }
+
+            var batches = _medicationService.GetRemittanceBatches();
+            ViewBag.Batches = batches;
+
+            var targetBatchId = batchId ?? batches.FirstOrDefault()?.RemittanceBatchId;
+            ViewBag.SelectedBatchId = targetBatchId;
+
+            var packagingSlips = _medicationService.GetPackagingSlip(targetBatchId);
+            return View(packagingSlips);
+        }
+
+        public ActionResult ExportPackagingToExcel(Guid? batchId = null)
+        {
+            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE) && !genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            {
+                return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
+            }
+
+            var slips = _medicationService.GetPackagingSlip(batchId);
+            var batchNo = slips.FirstOrDefault()?.RemittanceNumber ?? "All";
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>");
+            sb.Append("<head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' />");
+            sb.Append("<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>PackagingSlip</x:Name><x:WorksheetOptions><x:DisplayRightToLeft/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->");
+            sb.Append("<style>th { background-color: #2563eb; color: #ffffff; font-weight: bold; } td, th { border: 1px solid #cbd5e1; padding: 6px 12px; font-family: Tahoma, Arial; font-size: 11pt; text-align: center; } .text-right { text-align: right; } </style>");
+            sb.Append("</head><body dir='rtl'>");
+            sb.Append("<h3 style='text-align:center;'>لیست تفکیکی بسته‌بندی و تحویل داروی پرسنل (حواله: " + batchNo + ")</h3>");
+            sb.Append("<table border='1' cellspacing='0' cellpadding='4' dir='rtl'>");
+            sb.Append("<thead><tr>");
+            sb.Append("<th>ردیف</th>");
+            sb.Append("<th>کد پرسنلی</th>");
+            sb.Append("<th>نام و نام خانوادگی</th>");
+            sb.Append("<th>شماره فرآیند</th>");
+            sb.Append("<th>محل تحویل (DeliveryLocation)</th>");
+            sb.Append("<th>داروهای تجمیعی جهت بسته‌بندی</th>");
+            sb.Append("<th>تعداد کل اقلام</th>");
+            sb.Append("<th>شماره حواله</th>");
+            sb.Append("<th>تاریخ حواله</th>");
+            sb.Append("<th>صادرکننده</th>");
+            sb.Append("</tr></thead><tbody>");
+
+            int index = 1;
+            foreach (var item in slips)
+            {
+                sb.Append("<tr>");
+                sb.Append($"<td>{index++}</td>");
+                sb.Append($"<td>{item.PersonCode}</td>");
+                sb.Append($"<td class='text-right'><strong>{item.PersonFullName}</strong></td>");
+                sb.Append($"<td>{item.WorkFlowHdrId}</td>");
+                sb.Append($"<td><strong>{item.DeliveryLocation}</strong></td>");
+                sb.Append($"<td class='text-right'>{item.MedicationsSummary}</td>");
+                sb.Append($"<td>{item.TotalItemsCount}</td>");
+                sb.Append($"<td>{item.RemittanceNumber}</td>");
+                sb.Append($"<td>{item.IssuedDateShamsi}</td>");
+                sb.Append($"<td>{item.IssuedBy}</td>");
+                sb.Append("</tr>");
+            }
+
+            sb.Append("</tbody></table></body></html>");
+
+            var fileName = $"MedicationPackaging_{batchNo}_{DateTime.Now:yyyyMMdd}.xls";
+            return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "application/vnd.ms-excel", fileName);
+        }
+
+        public ActionResult PrintPackagingLabels(Guid? batchId = null)
+        {
+            if (!genClass.CheckAccess(User.Identity.Name, ACCESS_WAREHOUSE) && !genClass.CheckAccess(User.Identity.Name, ACCESS_SECRETARIAT))
+            {
+                return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
+            }
+
+            var slips = _medicationService.GetPackagingSlip(batchId);
+            return View(slips);
+        }
+
+        // =========================================================================
         // بخش دبیرخانه (Secretariat)
         // =========================================================================
         public ActionResult Secretariat(SecretariatSearchFilterDTO filter)

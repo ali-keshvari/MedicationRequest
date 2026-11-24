@@ -210,6 +210,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "RemittanceArchive" ? "active" : "")" 
+                           href="@Url.Action("RemittanceArchive", "MedicationRequest")">
+                            <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله و خروجی اکسل
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Secretariat" ? "active" : "")" 
                            href="@Url.Action("Secretariat", "MedicationRequest")">
                             <i class="fa-solid fa-envelope-open-text ms-1"></i> کارتابل دبیرخانه

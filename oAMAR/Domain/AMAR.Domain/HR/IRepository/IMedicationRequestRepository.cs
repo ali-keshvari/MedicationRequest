@@ -22,6 +22,9 @@ namespace AMAR.Domain.HR.IRepository
         void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId);
         List<string> GetDeliveryLocations();
 
+        // متدهای آرشیو حواله و لیست بسته‌بندی انبار جهت خروجی اکسل در هر زمان
+        List<MedicationRemittanceArchive> GetRemittanceArchives(Guid? batchId = null);
+
         // اجرای پراسیجر الحاق فرآیند و ارسال پیامک/ایمیل
         void SaveWorkflowAndNotify(int workFlowHdrId, int personId, int wfFieldId, string medicationListText, string actionType, string userName);
     }

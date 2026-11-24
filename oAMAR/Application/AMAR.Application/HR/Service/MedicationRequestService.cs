@@ -64,11 +64,78 @@ namespace AMAR.Application.HR.Service
             _repository.IssueRemittance(selectedUniqIds, userName, issueWFFieldId);
         }
 
+        public List<RemittanceBatchSummaryDTO> GetRemittanceBatches()
+        {
+            var archives = _repository.GetRemittanceArchives();
+
+            var batches = archives
+                .GroupBy(x => new { x.RemittanceBatchId, x.RemittanceNumber, x.IssuedDate, x.IssuedBy })
+                .Select(g => new RemittanceBatchSummaryDTO
+                {
+                    RemittanceBatchId = g.Key.RemittanceBatchId,
+                    RemittanceNumber = g.Key.RemittanceNumber,
+                    IssuedDate = g.Key.IssuedDate,
+                    IssuedDateShamsi = ((DateTime?)g.Key.IssuedDate).ToShamsi(),
+                    IssuedBy = g.Key.IssuedBy,
+                    TotalPersonsCount = g.Select(x => x.PersonId).Distinct().Count(),
+                    TotalItemsCount = g.Sum(x => x.Qty)
+                })
+                .OrderByDescending(x => x.IssuedDate)
+                .ToList();
+
+            return batches;
+        }
+
+        public List<MedicationPackagingSlipDTO> GetPackagingSlip(Guid? batchId = null)
+        {
+            var archives = _repository.GetRemittanceArchives(batchId);
+
+            var slips = archives
+                .GroupBy(x => new
+                {
+                    x.RemittanceBatchId,
+                    x.RemittanceNumber,
+                    x.WorkFlowHdrId,
+                    x.PersonId,
+                    x.PersonCode,
+                    x.PersonFullName,
+                    x.DeliveryLocation,
+                    x.MedicationsSummary,
+                    x.IssuedDate,
+                    x.IssuedBy
+                })
+                .Select(g => new MedicationPackagingSlipDTO
+                {
+                    RemittanceBatchId = g.Key.RemittanceBatchId,
+                    RemittanceNumber = g.Key.RemittanceNumber,
+                    WorkFlowHdrId = g.Key.WorkFlowHdrId,
+                    PersonId = g.Key.PersonId,
+                    PersonCode = g.Key.PersonCode,
+                    PersonFullName = g.Key.PersonFullName,
+                    DeliveryLocation = string.IsNullOrWhiteSpace(g.Key.DeliveryLocation) ? "دبیرخانه مرکزی" : g.Key.DeliveryLocation,
+                    MedicationsSummary = g.Key.MedicationsSummary,
+                    TotalItemsCount = g.Sum(x => x.Qty),
+                    IssuedDate = g.Key.IssuedDate,
+                    IssuedDateShamsi = ((DateTime?)g.Key.IssuedDate).ToShamsi(),
+                    IssuedBy = g.Key.IssuedBy,
+                    Items = g.Select(i => new PackagingItemLineDTO
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.ProductName,
+                        Qty = i.Qty
+                    }).ToList()
+                })
+                .OrderBy(x => x.DeliveryLocation)
+                .ThenBy(x => x.PersonFullName)
+                .ToList();
+
+            return slips;
+        }
+
         // ======================= بخش دبیرخانه =======================
 
         public List<MedicationRequestDTO> GetSecretariatRequests(SecretariatSearchFilterDTO filter)
         {
-            // فراخوانی ریپازیتوری که Person را به صورت Include واکشی کرده است
             var list = _repository.GetIssuedRequestsWithPerson(
                 filter?.PersonCode,
                 filter?.FullName,

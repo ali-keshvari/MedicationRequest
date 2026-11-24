@@ -74,4 +74,46 @@ namespace AMAR.Application.Contract.HR.DTO
         public string FullName { get; set; }
         public string DeliveryLocation { get; set; }
     }
+
+    /// <summary>
+    /// خلاصه بچ‌های حواله انبار جهت آرشیو و انتخاب خروجی اکسل
+    /// </summary>
+    public class RemittanceBatchSummaryDTO
+    {
+        public Guid RemittanceBatchId { get; set; }
+        public string RemittanceNumber { get; set; }
+        public DateTime IssuedDate { get; set; }
+        public string IssuedDateShamsi { get; set; }
+        public string IssuedBy { get; set; }
+        public int TotalPersonsCount { get; set; }
+        public int TotalItemsCount { get; set; }
+    }
+
+    /// <summary>
+    /// لیست تفکیکی بسته‌بندی دارو به ازای هر پرسنل جهت درج روی بسته و خروجی اکسل
+    /// </summary>
+    public class MedicationPackagingSlipDTO
+    {
+        public int WorkFlowHdrId { get; set; }
+        public int PersonId { get; set; }
+        public string PersonCode { get; set; }
+        public string PersonFullName { get; set; }
+        public string DeliveryLocation { get; set; }
+        public string MedicationsSummary { get; set; }
+        public int TotalItemsCount { get; set; }
+        public Guid RemittanceBatchId { get; set; }
+        public string RemittanceNumber { get; set; }
+        public DateTime IssuedDate { get; set; }
+        public string IssuedDateShamsi { get; set; }
+        public string IssuedBy { get; set; }
+
+        public List<PackagingItemLineDTO> Items { get; set; } = new List<PackagingItemLineDTO>();
+    }
+
+    public class PackagingItemLineDTO
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int Qty { get; set; }
+    }
 }

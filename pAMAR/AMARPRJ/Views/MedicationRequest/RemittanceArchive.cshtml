@@ -1,0 +1,249 @@
+@model List<AMAR.Application.Contract.HR.DTO.MedicationPackagingSlipDTO>
+@{
+    ViewBag.Title = "آرشیو حواله‌ها و لیست بسته‌بندی دارو";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var batches = ViewBag.Batches as List<AMAR.Application.Contract.HR.DTO.RemittanceBatchSummaryDTO> ?? new List<AMAR.Application.Contract.HR.DTO.RemittanceBatchSummaryDTO>();
+    var selectedBatchId = (Guid?)ViewBag.SelectedBatchId;
+    var currentBatch = batches.FirstOrDefault(x => x.RemittanceBatchId == selectedBatchId) ?? batches.FirstOrDefault();
+    var totalPersons = Model?.Count ?? 0;
+    var totalItems = Model?.Sum(x => x.TotalItemsCount) ?? 0;
+}
+
+<div class="container-fluid px-4">
+
+    <!-- ردیف کارت‌های بالای صفحه -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card blue">
+                <div>
+                    <div class="stat-label">شماره حواله انتخاب شده</div>
+                    <div class="stat-value font-monospace" style="font-size: 1.4rem;">@(currentBatch?.RemittanceNumber ?? "نامشخص")</div>
+                    <div class="small text-white-50 mt-1">صادرکننده: @(currentBatch?.IssuedBy ?? "-")</div>
+                </div>
+                <div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card emerald">
+                <div>
+                    <div class="stat-label">تعداد پرسنل این حواله (تعداد بسته‌ها)</div>
+                    <div class="stat-value">@totalPersons نفر</div>
+                    <div class="small text-white-50 mt-1">بسته‌های تفکیک‌شده جهت تحویل</div>
+                </div>
+                <div class="stat-icon"><i class="fa-solid fa-users-line"></i></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card amber">
+                <div>
+                    <div class="stat-label">مجموع کل اقلام دارویی</div>
+                    <div class="stat-value">@totalItems عدد</div>
+                    <div class="small text-white-50 mt-1">تاریخ حواله: @(currentBatch?.IssuedDateShamsi ?? "-")</div>
+                </div>
+                <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- پنل انتخاب بچ حواله و ابزارهای خروجی -->
+    <div class="card card-custom mb-4">
+        <div class="card-header-custom flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-box-archive text-primary fs-5"></i>
+                <span>انتخاب حواله و دریافت خروجی اکسل بسته‌بندی</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <!-- دکمه خروجی اکسل -->
+                <a href="@Url.Action("ExportPackagingToExcel", "MedicationRequest", new { batchId = selectedBatchId })" 
+                   class="btn btn-success fw-bold shadow-sm">
+                    <i class="fa-solid fa-file-excel ms-1"></i> دریافت خروجی اکسل بسته‌بندی
+                </a>
+
+                <!-- دکمه چاپ برچسب بسته -->
+                <a href="@Url.Action("PrintPackagingLabels", "MedicationRequest", new { batchId = selectedBatchId })" 
+                   target="_blank" class="btn btn-primary fw-bold shadow-sm">
+                    <i class="fa-solid fa-print ms-1"></i> چاپ برچسب‌های بسته دارو
+                </a>
+
+                <a href="@Url.Action("Warehouse", "MedicationRequest")" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-right ms-1"></i> بازگشت به کارتابل انبار
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            @using (Html.BeginForm("RemittanceArchive", "MedicationRequest", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
+            {
+                <div class="col-md-6 col-sm-12">
+                    <label class="form-label fw-bold small text-muted">انتخاب شماره حواله انبار (بر اساس تاریخ صدور):</label>
+                    <select name="batchId" class="form-select form-select-lg" onchange="this.form.submit();">
+                        @if (!batches.Any())
+                        {
+                            <option value="">هیچ حواله‌ای تا کنون صادر نشده است</option>
+                        }
+                        @foreach (var b in batches)
+                        {
+                            <option value="@b.RemittanceBatchId" @(b.RemittanceBatchId == selectedBatchId ? "selected" : "")>
+                                حواله: @b.RemittanceNumber | تاریخ: @b.IssuedDateShamsi | تعداد: @b.TotalPersonsCount نفر (@b.TotalItemsCount قلم)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 col-sm-12">
+                    <label class="form-label fw-bold small text-muted">جستجوی سریع در لیست زیر:</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-secondary"></i></span>
+                        <input type="text" id="slipSearch" class="form-control" placeholder="جستجوی نام پرسنل، کد پرسنلی یا محل تحویل..." />
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- جدول لیست تفکیکی بسته‌بندی دارو -->
+    <div class="card card-custom">
+        <div class="card-header-custom">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-clipboard-list text-success fs-5"></i>
+                <span>لیست بسته‌بندی دارو به تفکیک پرسنل (جهت درج مشخصات روی بسته دارو توسط کاربر انبار)</span>
+            </div>
+            <span class="badge bg-light text-dark border">حواله: @(currentBatch?.RemittanceNumber ?? "-")</span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom align-middle" id="slipTable">
+                        <thead>
+                            <tr class="text-center">
+                                <th style="width: 50px;">ردیف</th>
+                                <th>کد پرسنلی</th>
+                                <th class="text-end pe-4">نام و نام خانوادگی</th>
+                                <th>شماره فرآیند</th>
+                                <th class="text-center">محل تحویل (DeliveryLocation)</th>
+                                <th class="text-end pe-4" style="min-width: 320px;">اقلام دارویی داخل بسته</th>
+                                <th class="text-center">مجموع اقلام</th>
+                                <th class="text-center">اقدام</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Count; i++)
+                            {
+                                var slip = Model[i];
+                                <tr class="slip-row text-center">
+                                    <td>@(i + 1)</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border font-monospace px-2 py-1">@slip.PersonCode</span>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold text-dark slip-name">
+                                        <i class="fa-regular fa-user text-primary ms-1"></i>
+                                        @slip.PersonFullName
+                                    </td>
+                                    <td><span class="font-monospace text-secondary">#@slip.WorkFlowHdrId</span></td>
+                                    <td class="text-center slip-location">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fs-6">
+                                            <i class="fa-solid fa-location-dot text-danger ms-1"></i>
+                                            @slip.DeliveryLocation
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4 slip-meds">
+                                        <div class="p-2 rounded bg-light border text-dark" style="line-height: 1.8;">
+                                            @slip.MedicationsSummary
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">
+                                            @slip.TotalItemsCount قلم
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showPackageModal('@slip.PersonFullName', '@slip.PersonCode', '@slip.DeliveryLocation', '@slip.WorkFlowHdrId', '@slip.MedicationsSummary');">
+                                            <i class="fa-solid fa-tag ms-1"></i> پیش‌نمایش برچسب
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="fa-solid fa-box-open fs-1 mb-2 d-block text-secondary"></i>
+                    <span>هیچ داده‌ای برای این حواله یافت نشد.</span>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- مدال پیش‌نمایش برچسب بسته -->
+<div class="modal fade" id="packageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-custom">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-tag ms-2"></i> برچسب بسته دارویی پرسنل</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-end" style="border: 2px dashed #93c5fd; margin: 15px; border-radius: 12px; background: #f0fdf4;">
+                <div class="d-flex justify-content-between border-bottom pb-2 mb-3">
+                    <span class="text-muted small">سامانه توزیع داروی سازمان</span>
+                    <span class="badge bg-secondary font-monospace" id="lblWf">#</span>
+                </div>
+                <div class="mb-3">
+                    <div class="small text-muted">نام و نام خانوادگی تحویل‌گیرنده:</div>
+                    <div class="fs-4 fw-bold text-dark" id="lblName">-</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="small text-muted">کد پرسنلی:</div>
+                        <div class="fs-5 fw-bold font-monospace" id="lblCode">-</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small text-muted">محل تحویل:</div>
+                        <div class="fs-5 fw-bold text-danger" id="lblLoc">-</div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="small text-muted">محتویات دارویی بسته:</div>
+                    <div class="p-2 bg-white rounded border text-dark fw-semibold" id="lblMeds" style="line-height: 1.8;">-</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    // جستجوی زنده در جدول
+    document.getElementById('slipSearch')?.addEventListener('keyup', function () {
+        var filter = this.value.toLowerCase().trim();
+        var rows = document.querySelectorAll('.slip-row');
+        rows.forEach(function (row) {
+            var name = row.querySelector('.slip-name')?.innerText.toLowerCase() || '';
+            var loc = row.querySelector('.slip-location')?.innerText.toLowerCase() || '';
+            var meds = row.querySelector('.slip-meds')?.innerText.toLowerCase() || '';
+            var code = row.querySelector('.font-monospace')?.innerText.toLowerCase() || '';
+            var match = name.includes(filter) || loc.includes(filter) || meds.includes(filter) || code.includes(filter);
+            row.style.display = match ? '' : 'none';
+        });
+    });
+
+    function showPackageModal(name, code, loc, wf, meds) {
+        document.getElementById('lblName').innerText = name;
+        document.getElementById('lblCode').innerText = code;
+        document.getElementById('lblLoc').innerText = loc;
+        document.getElementById('lblWf').innerText = '#' + wf;
+        document.getElementById('lblMeds').innerText = meds;
+        var modal = new bootstrap.Modal(document.getElementById('packageModal'));
+        modal.show();
+    }
+</script>
+}

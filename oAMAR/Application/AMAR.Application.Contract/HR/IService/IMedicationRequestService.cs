@@ -29,9 +29,19 @@ namespace AMAR.Application.Contract.HR.IService
         List<MedicationRequestDTO> GetSnapshottedRequests(Guid? snapshotId = null);
 
         /// <summary>
-        /// صدور یکجای حواله برای داروهای انتخاب شده + Concat بر اساس WorkFlowHdrId و PersonId و ذخیره در فرم و ارسال نوتیفیکیشن
+        /// صدور یکجای حواله برای داروهای انتخاب شده + ذخیره در آرشیو دائمی جهت خروجی اکسل و بسته‌بندی + ارسال نوتیفیکیشن
         /// </summary>
         void IssueWarehouseRemittance(List<int> selectedUniqIds, string userName, int issueWFFieldId);
+
+        /// <summary>
+        /// دریافت لیست بچ‌های حواله ثبت شده در آرشیو
+        /// </summary>
+        List<RemittanceBatchSummaryDTO> GetRemittanceBatches();
+
+        /// <summary>
+        /// دریافت لیست بسته‌بندی دارو به ازای هر پرسنل جهت درج روی بسته و خروجی اکسل
+        /// </summary>
+        List<MedicationPackagingSlipDTO> GetPackagingSlip(Guid? batchId = null);
 
 
         // ======================= عملیات دبیرخانه =======================

@@ -108,6 +108,8 @@
     <Content Include="Views\MedicationRequest\Index.cshtml" />
     <Content Include="Views\MedicationRequest\Warehouse.cshtml" />
     <Content Include="Views\MedicationRequest\Secretariat.cshtml" />
+    <Content Include="Views\MedicationRequest\RemittanceArchive.cshtml" />
+    <Content Include="Views\MedicationRequest\PrintPackagingLabels.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\oAMAR\Application\AMAR.Application\AMAR.Application.csproj">

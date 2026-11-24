@@ -76,7 +76,9 @@ namespace AMAR.DataAccess.EF.Repository.HR
             if (uniqIds == null || !uniqIds.Any())
                 return;
 
+            // دریافت اقلام اسنپ‌شات شده به همراه اطلاعات Person
             var items = _context.MedicationRequests
+                .Include(x => x.Person)
                 .Where(x => uniqIds.Contains(x.UniqId) && x.Status == (int)MedicationStatus.Snapshotted)
                 .ToList();
 
@@ -84,6 +86,9 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 return;
 
             var now = DateTime.Now;
+            var batchId = Guid.NewGuid();
+            var remittanceNo = $"REM-{now:yyyyMMdd-HHmmss}";
+
             foreach (var item in items)
             {
                 item.Status = (int)MedicationStatus.Issued;
@@ -91,20 +96,51 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 item.IssuedBy = userName;
             }
 
-            _context.SaveChanges();
-
-            // گروه بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت الحاق در فرم فرآیند و ارسال نوتیفیکیشن
+            // ۱. گروه‌بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت ایجاد لیست بسته‌بندی و درج در آرشیو
             var grouped = items
                 .GroupBy(x => new { x.WorkFlowHdrId, x.PersonId })
                 .ToList();
 
             foreach (var group in grouped)
             {
-                var medList = string.Join(" | ", group.Select(m => $"{m.productName} ({m.Qty} عدد)"));
-                var fullText = $"[حواله انبار در تاریخ {now:yyyy/MM/dd HH:mm} توسط {userName}]: {medList}";
+                var person = group.First().Person ?? _context.Persons.Find(group.Key.PersonId);
+                var personCode = person?.PersonCode ?? string.Empty;
+                var fullName = person != null ? $"{person.FirstName} {person.LastName}".Trim() : "نامشخص";
+                var deliveryLoc = group.First().DeliveryLocation ?? string.Empty;
 
+                // Concat لیست داروهای قبول شده این فرد
+                var medList = string.Join(" | ", group.Select(m => $"{m.productName} ({m.Qty} عدد)"));
+
+                // ذخیره در جدول آرشیو دائمی جهت خروجی اکسل و بسته‌بندی در هر زمانی
+                foreach (var item in group)
+                {
+                    var archive = new MedicationRemittanceArchive
+                    {
+                        RemittanceBatchId = batchId,
+                        RemittanceNumber = remittanceNo,
+                        SnapshotId = item.SnapshotId,
+                        WorkFlowHdrId = item.WorkFlowHdrId,
+                        PersonId = item.PersonId,
+                        PersonCode = personCode,
+                        PersonFullName = fullName,
+                        DeliveryLocation = deliveryLoc,
+                        MedicationsSummary = medList,
+                        ProductId = item.ProductId,
+                        ProductName = item.productName,
+                        Qty = item.Qty,
+                        IssuedDate = now,
+                        IssuedBy = userName,
+                        CreatedDate = now
+                    };
+                    _context.MedicationRemittanceArchives.Add(archive);
+                }
+
+                // فراخوانی پروسجر جهت الحاق فرآیند و ارسال نوتیفیکیشن
+                var fullText = $"[حواله انبار {remittanceNo} در تاریخ {now:yyyy/MM/dd HH:mm} توسط {userName}]: {medList}";
                 SaveWorkflowAndNotify(group.Key.WorkFlowHdrId, group.Key.PersonId, issueWFFieldId, fullText, "ISSUE", userName);
             }
+
+            _context.SaveChanges();
         }
 
         public List<MedicationRequest> GetIssuedRequests()
@@ -115,9 +151,6 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 .ToList();
         }
 
-        /// <summary>
-        /// واکشی داروهای حواله شده به همراه اطلاعات Person از طریق Include مستقیم EF
-        /// </summary>
         public List<MedicationRequest> GetIssuedRequestsWithPerson(string personCode = null, string fullName = null, string deliveryLocation = null)
         {
             var query = _context.MedicationRequests
@@ -164,7 +197,6 @@ namespace AMAR.DataAccess.EF.Repository.HR
 
             _context.SaveChanges();
 
-            // گروه بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت الحاق تحویل در فرم فرآیند و ارسال نوتیفیکیشن
             var grouped = items
                 .GroupBy(x => new { x.WorkFlowHdrId, x.PersonId })
                 .ToList();
@@ -186,6 +218,18 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 .Distinct()
                 .OrderBy(x => x)
                 .ToList();
+        }
+
+        public List<MedicationRemittanceArchive> GetRemittanceArchives(Guid? batchId = null)
+        {
+            IQueryable<MedicationRemittanceArchive> query = _context.MedicationRemittanceArchives.AsNoTracking();
+
+            if (batchId.HasValue && batchId.Value != Guid.Empty)
+            {
+                query = query.Where(x => x.RemittanceBatchId == batchId.Value);
+            }
+
+            return query.OrderByDescending(x => x.IssuedDate).ThenBy(x => x.PersonFullName).ToList();
         }
 
         public void SaveWorkflowAndNotify(int workFlowHdrId, int personId, int wfFieldId, string medicationListText, string actionType, string userName)

@@ -74,7 +74,10 @@
                 <i class="fa-solid fa-chart-pie text-primary fs-5"></i>
                 <span>خلاصه تجمیعی داروها (تقاضای پرسنل تایید شده توسط پزشک)</span>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="@Url.Action("RemittanceArchive", "MedicationRequest")" class="btn btn-outline-primary btn-sm px-3 fw-bold shadow-sm">
+                    <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله‌ها و خروجی اکسل بسته‌بندی
+                </a>
                 @using (Html.BeginForm("TakeSnapshot", "MedicationRequest", FormMethod.Post, new { id = "snapshotForm", @class = "d-inline" }))
                 {
                     @Html.AntiForgeryToken()
