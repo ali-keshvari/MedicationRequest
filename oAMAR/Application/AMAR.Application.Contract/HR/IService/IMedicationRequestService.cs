@@ -32,6 +32,7 @@ namespace AMAR.Application.Contract.HR.IService
         /// صدور یکجای حواله برای داروهای انتخاب شده + ذخیره در آرشیو دائمی جهت خروجی اکسل و بسته‌بندی + ارسال نوتیفیکیشن
         /// </summary>
         void IssueWarehouseRemittance(List<int> selectedUniqIds, string userName, int issueWFFieldId);
+        void IssueWarehouseRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId);
 
         /// <summary>
         /// دریافت لیست بچ‌های حواله ثبت شده در آرشیو

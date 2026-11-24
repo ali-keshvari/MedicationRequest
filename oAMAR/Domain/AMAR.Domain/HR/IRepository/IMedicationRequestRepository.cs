@@ -15,6 +15,7 @@ namespace AMAR.Domain.HR.IRepository
         Guid CreateSnapshot(string userName, List<int> productIds = null);
         List<MedicationRequest> GetSnapshottedRequests(Guid? snapshotId = null);
         void IssueRemittance(List<int> uniqIds, string userName, int issueWFFieldId);
+        void IssueRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId);
 
         // متدهای دبیرخانه (اطلاعات شخص با Include لود می‌شود)
         List<MedicationRequest> GetIssuedRequests();

@@ -79,31 +79,82 @@ namespace AMAR.DataAccess.EF.Repository.HR
 
         public void IssueRemittance(List<int> uniqIds, string userName, int issueWFFieldId)
         {
-            if (uniqIds == null || !uniqIds.Any())
-                return;
+            IssueRemittance(uniqIds, null, null, userName, issueWFFieldId);
+        }
 
-            // دریافت اقلام اسنپ‌شات شده به همراه اطلاعات Person
-            var items = _context.MedicationRequests
+        public void IssueRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId)
+        {
+            // ۱. استخراج اقلامی که تیک خورده‌اند و حواله آن‌ها باید صادر شود
+            var issueQuery = _context.MedicationRequests
                 .Include(x => x.Person)
-                .Where(x => uniqIds.Contains(x.UniqId) && x.Status == (int)MedicationStatus.Snapshotted)
-                .ToList();
+                .Where(x => x.Status == (int)MedicationStatus.Snapshotted);
 
-            if (!items.Any())
+            if (snapshotId.HasValue && snapshotId.Value != Guid.Empty)
+            {
+                issueQuery = issueQuery.Where(x => x.SnapshotId == snapshotId.Value);
+            }
+
+            if (selectedProductIds != null && selectedProductIds.Any())
+            {
+                issueQuery = issueQuery.Where(x => selectedProductIds.Contains(x.ProductId));
+            }
+            else if (selectedUniqIds != null && selectedUniqIds.Any())
+            {
+                issueQuery = issueQuery.Where(x => selectedUniqIds.Contains(x.UniqId));
+            }
+            else
+            {
+                issueQuery = issueQuery.Where(x => false);
+            }
+
+            var itemsToIssue = issueQuery.ToList();
+
+            // ۲. بازگرداندن اقلام تیک‌نخورده از همین اسنپ‌شات به وضعیت اولیه (Status = 0 و SnapshotId = null)
+            var resetQuery = _context.MedicationRequests
+                .Where(x => x.Status == (int)MedicationStatus.Snapshotted);
+
+            if (snapshotId.HasValue && snapshotId.Value != Guid.Empty)
+            {
+                resetQuery = resetQuery.Where(x => x.SnapshotId == snapshotId.Value);
+            }
+
+            if (selectedProductIds != null && selectedProductIds.Any())
+            {
+                resetQuery = resetQuery.Where(x => !selectedProductIds.Contains(x.ProductId));
+            }
+            else if (selectedUniqIds != null && selectedUniqIds.Any())
+            {
+                resetQuery = resetQuery.Where(x => !selectedUniqIds.Contains(x.UniqId));
+            }
+
+            var itemsToReset = resetQuery.ToList();
+
+            foreach (var item in itemsToReset)
+            {
+                item.Status = (int)MedicationStatus.Pending;
+                item.SnapshotId = null;
+                item.SnapshotDate = null;
+            }
+
+            if (!itemsToIssue.Any())
+            {
+                _context.SaveChanges();
                 return;
+            }
 
             var now = DateTime.Now;
             var batchId = Guid.NewGuid();
             var remittanceNo = $"REM-{now:yyyyMMdd-HHmmss}";
 
-            foreach (var item in items)
+            foreach (var item in itemsToIssue)
             {
                 item.Status = (int)MedicationStatus.Issued;
                 item.IssuedDate = now;
                 item.IssuedBy = userName;
             }
 
-            // ۱. گروه‌بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت ایجاد لیست بسته‌بندی و درج در آرشیو
-            var grouped = items
+            // گروه‌بندی بر اساس distinct (WorkFlowHdrId, PersonId) جهت ایجاد لیست بسته‌بندی و درج در آرشیو
+            var grouped = itemsToIssue
                 .GroupBy(x => new { x.WorkFlowHdrId, x.PersonId })
                 .ToList();
 

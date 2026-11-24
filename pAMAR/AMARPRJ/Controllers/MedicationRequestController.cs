@@ -137,7 +137,7 @@ namespace AMARPRJ.Controllers
 
             // دریافت لیست رکوردهای اسنپ‌شات شده برای تیک زدن و صدور حواله
             var snapshottedItems = _medicationService.GetSnapshottedRequests(snapshotId);
-            ViewBag.ActiveSnapshotId = snapshotId;
+            ViewBag.ActiveSnapshotId = snapshotId ?? (snapshottedItems.Any() ? snapshottedItems.FirstOrDefault().SnapshotId : (Guid?)null);
             ViewBag.DefaultWFFieldId = DEFAULT_ISSUE_WF_FIELD_ID;
 
             return View(snapshottedItems);
@@ -179,25 +179,29 @@ namespace AMARPRJ.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult IssueRemittance(List<int> selectedUniqIds, int? wfFieldId)
+        public ActionResult IssueRemittance(List<int> selectedProductIds, List<int> selectedUniqIds, Guid? activeSnapshotId, int? wfFieldId)
         {
-            if (!CheckUserAccess( ACCESS_WAREHOUSE))
+            if (!CheckUserAccess(ACCESS_WAREHOUSE))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
 
-            if (selectedUniqIds == null || !selectedUniqIds.Any())
-            {
-                TempData["ErrorMessage"] = "لطفاً حداقل یک دارو برای صدور حواله انتخاب نمایید.";
-                return RedirectToAction("Warehouse");
-            }
+            bool hasSelectedProducts = selectedProductIds != null && selectedProductIds.Any();
+            bool hasSelectedUniqs = selectedUniqIds != null && selectedUniqIds.Any();
+            int targetFieldId = wfFieldId ?? DEFAULT_ISSUE_WF_FIELD_ID;
 
             try
             {
-                int targetFieldId = wfFieldId ?? DEFAULT_ISSUE_WF_FIELD_ID;
-                _medicationService.IssueWarehouseRemittance(selectedUniqIds, User.Identity.Name, targetFieldId);
+                if (!hasSelectedProducts && !hasSelectedUniqs)
+                {
+                    _medicationService.IssueWarehouseRemittance(null, null, activeSnapshotId, User.Identity.Name, targetFieldId);
+                    TempData["WarningMessage"] = "چون هیچ دارویی انتخاب نشد، تمام اقلام این اسنپ‌شات لغو شده و به صف انتظار (Status = 0) بازگردانده شدند.";
+                    return RedirectToAction("Warehouse");
+                }
 
-                TempData["SuccessMessage"] = $"حواله انبار برای {selectedUniqIds.Count} قلم دارو با موفقیت کشیده شد و وضعیت به حواله شده تغییر یافت.";
+                _medicationService.IssueWarehouseRemittance(selectedUniqIds, selectedProductIds, activeSnapshotId, User.Identity.Name, targetFieldId);
+
+                TempData["SuccessMessage"] = "حواله انبار برای داروهای انتخابی با موفقیت صادر شد و سایر اقلام تیک‌نخورده به صف انتظار (Status = 0) بازگشتند.";
             }
             catch (Exception ex)
             {

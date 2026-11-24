@@ -133,18 +133,19 @@
         </div>
     }
 
-    <!-- بخش دوم: رکوردهای Snapshot جاری جهت انتخاب و صدور حواله -->
+    <!-- بخش دوم: رکوردهای Snapshot جاری به صورت گروهی به ازای هر دارو جهت صدور حواله یا بازگشت به وضعیت صفر -->
     @using (Html.BeginForm("IssueRemittance", "MedicationRequest", FormMethod.Post, new { id = "issueForm" }))
     {
         @Html.AntiForgeryToken()
         <input type="hidden" name="wfFieldId" value="@(ViewBag.DefaultWFFieldId ?? 101)" />
+        <input type="hidden" name="activeSnapshotId" value="@(ViewBag.ActiveSnapshotId != null ? ViewBag.ActiveSnapshotId.ToString() : "")" />
 
         <div class="card card-custom">
             <div class="card-header-custom flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-file-invoice-dollar text-success fs-5"></i>
-                    <span>اقلام موجود در Snapshot جاری جهت صدور حواله انبار</span>
-                    <span id="selectedBadge" class="badge bg-primary px-3 py-1 rounded-pill">0 قلم انتخاب شده</span>
+                    <i class="fa-solid fa-boxes-stacked text-success fs-5"></i>
+                    <span>اقلام Snapshot جاری (نمایش گروهی داروها جهت صدور حواله)</span>
+                    <span id="selectedBadge" class="badge bg-success px-3 py-1 rounded-pill">0 گروه انتخاب شده</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <input type="text" id="tableSearch" class="form-control form-control-sm" placeholder="جستجوی سریع دارو..." style="width: 200px;" />
@@ -156,49 +157,107 @@
             <div class="card-body p-0">
                 @if (Model != null && Model.Any())
                 {
+                    var groupedSnapshots = Model
+                        .GroupBy(x => new { x.ProductId, x.productName })
+                        .OrderBy(g => g.Key.productName)
+                        .ToList();
+
                     <div class="table-responsive">
-                        <table class="table table-hover table-custom text-center align-middle" id="snapTable">
+                        <table class="table table-hover table-custom text-center align-middle mb-0" id="snapGroupTable">
                             <thead>
                                 <tr>
                                     <th style="width: 50px;">
-                                        <input type="checkbox" id="selectAll" class="form-check-input" />
+                                        <input type="checkbox" id="selectAllGroups" class="form-check-input" checked title="انتخاب همه گروه‌های دارویی" />
                                     </th>
-                                    <th>ردیف</th>
-                                    <th class="text-end pe-4">نام دارو</th>
-                                    <th>تعداد درخواستی</th>
-                                    <th>محل تحویل</th>
-                                    <th>شماره فرآیند (WorkFlow)</th>
-                                    <th>شناسه شخص</th>
-                                    <th>سال / فصل</th>
-                                    <th>تاریخ Snapshot</th>
+                                    <th>کد دارو</th>
+                                    <th class="text-end pe-4">نام داروی تجمیع شده</th>
+                                    <th>تعداد کل درخواست‌ها</th>
+                                    <th>مجموع تعداد مورد نیاز</th>
                                     <th>وضعیت</th>
+                                    <th style="width: 170px;">ریز درخواست‌ها</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for (int i = 0; i < Model.Count; i++)
+                                @foreach (var grp in groupedSnapshots)
                                 {
-                                    var row = Model[i];
-                                    <tr class="item-row">
+                                    <tr class="group-row" data-prod-id="@grp.Key.ProductId">
                                         <td>
-                                            <input type="checkbox" name="selectedUniqIds" value="@row.UniqId" class="form-check-input chk-item" onchange="updateCounter();" />
+                                            <input type="checkbox" name="selectedProductIds" value="@grp.Key.ProductId" class="form-check-input chk-grp-item" data-prod-id="@grp.Key.ProductId" checked onchange="updateGroupCounter();" />
                                         </td>
-                                        <td>@(i + 1)</td>
-                                        <td class="text-end pe-4 fw-bold text-dark med-name">@row.productName</td>
-                                        <td><span class="badge bg-info-subtle text-info-emphasis px-3 py-1">@row.Qty عدد</span></td>
                                         <td>
-                                            <span class="badge bg-light text-dark border">
-                                                <i class="fa-solid fa-location-dot text-danger ms-1"></i>
-                                                @(string.IsNullOrEmpty(row.DeliveryLocation) ? "دبیرخانه مرکزی" : row.DeliveryLocation)
+                                            <span class="badge bg-light text-secondary border">@grp.Key.ProductId</span>
+                                        </td>
+                                        <td class="text-end pe-4 fw-bold text-dark med-group-name">
+                                            @grp.Key.productName
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">@grp.Count() درخواست</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">@grp.Sum(x => x.Qty) عدد</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1">
+                                                <i class="fa-solid fa-camera ms-1"></i> در اسنپ‌شات
                                             </span>
                                         </td>
-                                        <td><span class="font-monospace text-secondary">#@row.WorkFlowHdrId</span></td>
-                                        <td><span class="badge bg-light text-secondary border">@row.PersonId</span></td>
-                                        <td>@row.ShYear / @row.ShSeason</td>
-                                        <td class="text-muted small">@row.SnapshotDateShamsi</td>
                                         <td>
-                                            <span class="badge-status badge-snapshot">
-                                                <i class="fa-solid fa-clock ms-1"></i> @row.StatusTitle
-                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-primary px-3 rounded-pill fw-semibold" data-bs-toggle="collapse" data-bs-target="#details-@grp.Key.ProductId" aria-expanded="false" title="مشاهده پرسنل درخواست‌دهنده این دارو">
+                                                <i class="fa-solid fa-users ms-1"></i> مشاهده (@grp.Count() نفر)
+                                                <i class="fa-solid fa-chevron-down ms-1"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="collapse-row">
+                                        <td colspan="7" class="p-0 border-0">
+                                            <div class="collapse bg-light px-4 py-3 border-bottom" id="details-@grp.Key.ProductId">
+                                                <div class="card border-0 shadow-sm">
+                                                    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                                        <span class="small fw-bold text-secondary">
+                                                            <i class="fa-solid fa-clipboard-list text-primary ms-1"></i> لیست پرسنل درخواست‌دهنده داروی «@grp.Key.productName»
+                                                        </span>
+                                                        <span class="badge bg-light text-dark border">مجموع: @grp.Sum(x => x.Qty) عدد</span>
+                                                    </div>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered text-center align-middle mb-0 small">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th style="width: 40px;">ردیف</th>
+                                                                    <th>شماره فرآیند</th>
+                                                                    <th>شناسه شخص</th>
+                                                                    <th>کد پرسنلی / نام همکار</th>
+                                                                    <th>محل تحویل</th>
+                                                                    <th>تعداد</th>
+                                                                    <th>سال / فصل</th>
+                                                                    <th>تاریخ اسنپ‌شات</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @{ int subIdx = 1; }
+                                                                @foreach (var sub in grp)
+                                                                {
+                                                                    <tr>
+                                                                        <td class="text-muted">@subIdx</td>
+                                                                        <td><span class="badge bg-light text-dark border">#@sub.WorkFlowHdrId</span></td>
+                                                                        <td><span class="badge bg-light text-secondary border">@sub.PersonId</span></td>
+                                                                        <td class="fw-semibold">
+                                                                            @(sub.PersonelCode.HasValue ? sub.PersonelCode.Value.ToString() + " - " : "")@(string.IsNullOrEmpty(sub.PersonFullName) ? "ثبت شده" : sub.PersonFullName)
+                                                                        </td>
+                                                                        <td>
+                                                                            <i class="fa-solid fa-location-dot text-danger ms-1"></i>
+                                                                            @(string.IsNullOrEmpty(sub.DeliveryLocation) ? "دبیرخانه مرکزی" : sub.DeliveryLocation)
+                                                                        </td>
+                                                                        <td><span class="badge bg-success-subtle text-success">@sub.Qty عدد</span></td>
+                                                                        <td>@sub.ShYear / @sub.ShSeason</td>
+                                                                        <td class="text-muted">@(sub.SnapshotDateShamsi ?? "-")</td>
+                                                                    </tr>
+                                                                    subIdx++;
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -210,7 +269,7 @@
                 {
                     <div class="p-5 text-center text-muted">
                         <i class="fa-solid fa-list-check fs-1 mb-2 d-block text-secondary"></i>
-                        <span>هیچ دارویی در اسنپ‌شات فعلی وجود ندارد. لطفاً دکمه «ثبت Snapshot لحظه‌ای» را کلیک کنید.</span>
+                        <span>هیچ دارویی در اسنپ‌شات فعلی وجود ندارد. لطفاً از جدول بالا داروهای مورد نظر را انتخاب و دکمه «ثبت Snapshot لحظه‌ای» را کلیک کنید.</span>
                     </div>
                 }
             </div>
@@ -221,29 +280,7 @@
 
 @section scripts {
 <script>
-    // انتخاب همه چک‌باکس‌ها
-    var selectAllEl = document.getElementById('selectAll');
-    if (selectAllEl) {
-        selectAllEl.addEventListener('change', function () {
-            var checkboxes = document.querySelectorAll('.chk-item');
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = this.checked;
-            }
-            updateCounter();
-        });
-    }
-
-    // شمارنده رکوردهای انتخاب شده
-    function updateCounter() {
-        var count = document.querySelectorAll('.chk-item:checked').length;
-        var badge = document.getElementById('selectedBadge');
-        if (badge) {
-            badge.innerText = count + ' قلم انتخاب شده';
-            badge.className = count > 0 ? 'badge bg-success px-3 py-1 rounded-pill' : 'badge bg-secondary px-3 py-1 rounded-pill';
-        }
-    }
-
-    // چک‌باکس انتخاب همه در جدول خلاصه تجمیعی داروها
+    // چک‌باکس انتخاب همه در جدول خلاصه تجمیعی داروها (بخش اول)
     var selectAllSummaryEl = document.getElementById('selectAllSummary');
     if (selectAllSummaryEl) {
         selectAllSummaryEl.addEventListener('change', function () {
@@ -255,7 +292,7 @@
         });
     }
 
-    // شمارنده داروهای انتخاب شده برای اسنپ‌شات
+    // شمارنده داروهای انتخاب شده برای ثبت اسنپ‌شات
     function updateSummaryCounter() {
         var count = document.querySelectorAll('.chk-summary:checked').length;
         var badge = document.getElementById('summaryBadge');
@@ -282,32 +319,80 @@
         }
     }
 
-    // تایید و صدور حواله
+    // چک‌باکس انتخاب همه گروه‌های دارویی در اسنپ‌شات (بخش دوم)
+    var selectAllGroupsEl = document.getElementById('selectAllGroups');
+    if (selectAllGroupsEl) {
+        selectAllGroupsEl.addEventListener('change', function () {
+            var checkboxes = document.querySelectorAll('.chk-grp-item');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+            updateGroupCounter();
+        });
+    }
+
+    // شمارنده گروه‌های دارویی انتخاب شده برای حواله
+    function updateGroupCounter() {
+        var count = document.querySelectorAll('.chk-grp-item:checked').length;
+        var total = document.querySelectorAll('.chk-grp-item').length;
+        var badge = document.getElementById('selectedBadge');
+        if (badge) {
+            badge.innerText = count + ' از ' + total + ' گروه دارویی انتخاب شده';
+            badge.className = count > 0 ? 'badge bg-success px-3 py-1 rounded-pill' : 'badge bg-secondary px-3 py-1 rounded-pill';
+        }
+    }
+
+    // تایید و صدور حواله انبار
     function submitRemittance() {
-        var count = document.querySelectorAll('.chk-item:checked').length;
-        if (count === 0) {
-            alert('لطفاً حداقل یک قلم دارو را برای صدور حواله انبار انتخاب فرمایید.');
+        var count = document.querySelectorAll('.chk-grp-item:checked').length;
+        var total = document.querySelectorAll('.chk-grp-item').length;
+        var unchecked = total - count;
+
+        if (total === 0) {
+            alert('هیچ دارویی در اسنپ‌شات فعلی وجود ندارد.');
             return;
         }
 
-        if (confirm('آیا از صدور حواله برای ' + count + ' قلم داروی انتخاب شده اطمینان دارید؟\n\nنکات پشت پرده این عملیات:\n۱- وضعیت داروها به «حواله صادر شده» تغییر می‌یابد.\n۲- لیست داروها به ازای هر درخواست کننده الحاق (Append) می‌شود.\n۳- پیامک و ایمیل صدور حواله به پرسنل ارسال خواهد شد.')) {
+        if (count === 0) {
+            if (confirm('هیچ گروه دارویی تیک نخورده است!\n\nآیا تمایل دارید تمام اقلام (' + total + ' گروه دارویی) از اسنپ‌شات خارج شده و به وضعیت در انتظار (Status = 0) بازگردانده شوند؟')) {
+                document.getElementById('issueForm').submit();
+            }
+            return;
+        }
+
+        var message = 'آیا از صدور حواله برای ' + count + ' گروه داروی انتخاب شده اطمینان دارید؟\n\n' +
+            '✓ داروهای تیک‌خورده (' + count + ' گروه): وضعیت به «حواله صادر شده» تغییر یافته، در آرشیو ثبت و اطلاع‌رسانی ارسال می‌شود.\n';
+
+        if (unchecked > 0) {
+            message += '\n✗ داروهای تیک‌نخورده (' + unchecked + ' گروه): از اسنپ‌شات خارج شده و به صف انتظار (Status = 0) بازمی‌گردند.';
+        }
+
+        if (confirm(message)) {
             document.getElementById('issueForm').submit();
         }
     }
 
-    // فیلتر سریع متنی در جدول
+    // فیلتر سریع متنی در جدول گروه‌های دارویی
     var searchEl = document.getElementById('tableSearch');
     if (searchEl) {
         searchEl.addEventListener('keyup', function () {
             var filter = this.value.toLowerCase();
-            var rows = document.querySelectorAll('.item-row');
+            var rows = document.querySelectorAll('.group-row');
             for (var i = 0; i < rows.length; i++) {
                 var row = rows[i];
-                var medNameEl = row.querySelector('.med-name');
+                var medNameEl = row.querySelector('.med-group-name');
                 var medName = medNameEl ? medNameEl.innerText.toLowerCase() : '';
-                row.style.display = medName.indexOf(filter) > -1 ? '' : 'none';
+                var match = medName.indexOf(filter) > -1;
+                row.style.display = match ? '' : 'none';
+                var nextCollapse = row.nextElementSibling;
+                if (nextCollapse && nextCollapse.classList.contains('collapse-row')) {
+                    nextCollapse.style.display = match ? '' : 'none';
+                }
             }
         });
     }
+
+    // فراخوانی اولیه شمارنده
+    updateGroupCounter();
 </script>
 }

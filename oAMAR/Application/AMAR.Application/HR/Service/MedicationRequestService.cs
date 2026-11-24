@@ -58,10 +58,12 @@ namespace AMAR.Application.HR.Service
 
         public void IssueWarehouseRemittance(List<int> selectedUniqIds, string userName, int issueWFFieldId)
         {
-            if (selectedUniqIds == null || !selectedUniqIds.Any())
-                throw new ArgumentException("هیچ دارویی برای صدور حواله انتخاب نشده است.");
+            IssueWarehouseRemittance(selectedUniqIds, null, null, userName, issueWFFieldId);
+        }
 
-            _repository.IssueRemittance(selectedUniqIds, userName, issueWFFieldId);
+        public void IssueWarehouseRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId)
+        {
+            _repository.IssueRemittance(selectedUniqIds, selectedProductIds, snapshotId, userName, issueWFFieldId);
         }
 
         public List<RemittanceBatchSummaryDTO> GetRemittanceBatches()
