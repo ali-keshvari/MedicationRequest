@@ -20,7 +20,7 @@ namespace AMAR.DataAccess.EF.Mapping.HR
             Property(x => x.SnapshotId).IsOptional();
             Property(x => x.WorkFlowHdrId).IsRequired();
             Property(x => x.PersonId).IsRequired();
-            Property(x => x.PersonCode).HasMaxLength(50).IsOptional();
+            Property(x => x.PersonelCode).IsOptional();
             Property(x => x.PersonFullName).HasMaxLength(200).IsOptional();
             Property(x => x.DeliveryLocation).HasMaxLength(150).IsOptional();
             Property(x => x.MedicationsSummary).IsMaxLength().IsOptional();

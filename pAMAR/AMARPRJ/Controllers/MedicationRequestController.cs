@@ -216,7 +216,7 @@ namespace AMARPRJ.Controllers
             {
                 sb.Append("<tr>");
                 sb.Append($"<td>{index++}</td>");
-                sb.Append($"<td>{item.PersonCode}</td>");
+                sb.Append($"<td>{item.PersonelCode}</td>");
                 sb.Append($"<td class='text-right'><strong>{item.PersonFullName}</strong></td>");
                 sb.Append($"<td>{item.WorkFlowHdrId}</td>");
                 sb.Append($"<td><strong>{item.DeliveryLocation}</strong></td>");

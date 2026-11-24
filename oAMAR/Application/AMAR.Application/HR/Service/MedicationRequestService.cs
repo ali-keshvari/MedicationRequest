@@ -97,7 +97,7 @@ namespace AMAR.Application.HR.Service
                     x.RemittanceNumber,
                     x.WorkFlowHdrId,
                     x.PersonId,
-                    x.PersonCode,
+                    x.PersonelCode,
                     x.PersonFullName,
                     x.DeliveryLocation,
                     x.MedicationsSummary,
@@ -110,7 +110,7 @@ namespace AMAR.Application.HR.Service
                     RemittanceNumber = g.Key.RemittanceNumber,
                     WorkFlowHdrId = g.Key.WorkFlowHdrId,
                     PersonId = g.Key.PersonId,
-                    PersonCode = g.Key.PersonCode,
+                    PersonelCode = g.Key.PersonelCode,
                     PersonFullName = g.Key.PersonFullName,
                     DeliveryLocation = string.IsNullOrWhiteSpace(g.Key.DeliveryLocation) ? "دبیرخانه مرکزی" : g.Key.DeliveryLocation,
                     MedicationsSummary = g.Key.MedicationsSummary,
@@ -137,7 +137,7 @@ namespace AMAR.Application.HR.Service
         public List<MedicationRequestDTO> GetSecretariatRequests(SecretariatSearchFilterDTO filter)
         {
             var list = _repository.GetIssuedRequestsWithPerson(
-                filter?.PersonCode,
+                filter?.PersonelCode,
                 filter?.FullName,
                 filter?.DeliveryLocation
             );

@@ -63,8 +63,8 @@ namespace AMAR.Application.HR.Mapper
                 DeliveredDateShamsi = entity.DeliveredDate.ToShamsi(),
                 DeliveredBy = entity.DeliveredBy,
 
-                // مستقیماً از موجودیت Person که include شده خوانده می‌شود
-                PersonCode = entity.Person?.PersonCode,
+                // از فیلد PersonelCode با تایپ int خوانده می‌شود
+                PersonelCode = entity.Person?.PersonelCode,
                 FullName = entity.Person != null ? entity.Person.FullName : null,
                 NationalCode = entity.Person?.NationalCode,
                 Mobile = entity.Person?.Mobile

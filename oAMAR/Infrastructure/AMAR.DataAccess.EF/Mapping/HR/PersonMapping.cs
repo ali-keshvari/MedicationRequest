@@ -10,7 +10,7 @@ namespace AMAR.DataAccess.EF.Mapping.HR
             ToTable("Person", "dbo");
 
             HasKey(x => x.PersonId);
-            Property(x => x.PersonCode).HasMaxLength(50).IsRequired();
+            Property(x => x.PersonelCode).IsRequired();
             Property(x => x.FirstName).HasMaxLength(100).IsRequired();
             Property(x => x.LastName).HasMaxLength(100).IsRequired();
             Property(x => x.NationalCode).HasMaxLength(20).IsOptional();

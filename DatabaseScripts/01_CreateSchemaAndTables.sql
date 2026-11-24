@@ -66,7 +66,7 @@ BEGIN
         [SnapshotId] [uniqueidentifier] NULL,              -- شناسه اسنپ شات مرتبط
         [WorkFlowHdrId] [int] NOT NULL,                    -- شماره فرآیند
         [PersonId] [int] NOT NULL,                         -- شناسه شخص
-        [PersonCode] [nvarchar](50) NULL,                  -- کد پرسنلی شخص
+        [PersonelCode] [int] NULL,                         -- کد پرسنلی شخص
         [PersonFullName] [nvarchar](200) NULL,             -- نام و نام خانوادگی جهت درج روی بسته
         [DeliveryLocation] [nvarchar](150) NULL,           -- محل تحویل جهت درج روی بسته
         [MedicationsSummary] [nvarchar](max) NULL,         -- لیست داروها برای درج روی بسته یا اکسل
@@ -106,7 +106,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Pe
 BEGIN
     CREATE TABLE [dbo].[Person](
         [PersonId] [int] NOT NULL PRIMARY KEY,
-        [PersonCode] [nvarchar](50) NOT NULL,
+        [PersonelCode] [int] NOT NULL,
         [FirstName] [nvarchar](100) NOT NULL,
         [LastName] [nvarchar](100) NOT NULL,
         [NationalCode] [nvarchar](20) NULL,

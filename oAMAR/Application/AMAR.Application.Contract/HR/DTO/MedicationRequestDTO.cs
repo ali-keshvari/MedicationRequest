@@ -30,7 +30,7 @@ namespace AMAR.Application.Contract.HR.DTO
         public string DeliveredBy { get; set; }
 
         // فیلدهای حاصل از Join با جدول Person جهت نمایش به دبیرخانه
-        public string PersonCode { get; set; }
+        public int? PersonelCode { get; set; }
         public string FullName { get; set; }
         public string NationalCode { get; set; }
         public string Mobile { get; set; }
@@ -70,7 +70,7 @@ namespace AMAR.Application.Contract.HR.DTO
     /// </summary>
     public class SecretariatSearchFilterDTO
     {
-        public string PersonCode { get; set; }
+        public int? PersonelCode { get; set; }
         public string FullName { get; set; }
         public string DeliveryLocation { get; set; }
     }
@@ -96,7 +96,7 @@ namespace AMAR.Application.Contract.HR.DTO
     {
         public int WorkFlowHdrId { get; set; }
         public int PersonId { get; set; }
-        public string PersonCode { get; set; }
+        public int? PersonelCode { get; set; }
         public string PersonFullName { get; set; }
         public string DeliveryLocation { get; set; }
         public string MedicationsSummary { get; set; }

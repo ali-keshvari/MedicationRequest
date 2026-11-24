@@ -104,7 +104,7 @@ namespace AMAR.DataAccess.EF.Repository.HR
             foreach (var group in grouped)
             {
                 var person = group.First().Person ?? _context.Persons.Find(group.Key.PersonId);
-                var personCode = person?.PersonCode ?? string.Empty;
+                var personelCode = person?.PersonelCode;
                 var fullName = person != null ? $"{person.FirstName} {person.LastName}".Trim() : "نامشخص";
                 var deliveryLoc = group.First().DeliveryLocation ?? string.Empty;
 
@@ -121,7 +121,7 @@ namespace AMAR.DataAccess.EF.Repository.HR
                         SnapshotId = item.SnapshotId,
                         WorkFlowHdrId = item.WorkFlowHdrId,
                         PersonId = item.PersonId,
-                        PersonCode = personCode,
+                        PersonelCode = personelCode,
                         PersonFullName = fullName,
                         DeliveryLocation = deliveryLoc,
                         MedicationsSummary = medList,
@@ -151,15 +151,18 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 .ToList();
         }
 
-        public List<MedicationRequest> GetIssuedRequestsWithPerson(string personCode = null, string fullName = null, string deliveryLocation = null)
+        /// <summary>
+        /// واکشی داروهای حواله شده به همراه اطلاعات Person از طریق Include مستقیم EF
+        /// </summary>
+        public List<MedicationRequest> GetIssuedRequestsWithPerson(int? personelCode = null, string fullName = null, string deliveryLocation = null)
         {
             var query = _context.MedicationRequests
                 .Include(x => x.Person)
                 .Where(x => x.Status == (int)MedicationStatus.Issued);
 
-            if (!string.IsNullOrWhiteSpace(personCode))
+            if (personelCode.HasValue)
             {
-                query = query.Where(x => x.Person != null && x.Person.PersonCode.Contains(personCode.Trim()));
+                query = query.Where(x => x.Person != null && x.Person.PersonelCode == personelCode.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(fullName))

@@ -13,7 +13,7 @@ namespace AMAR.Domain.HR.Model
         public Guid? SnapshotId { get; set; }
         public int WorkFlowHdrId { get; set; }
         public int PersonId { get; set; }
-        public string PersonCode { get; set; }
+        public int? PersonelCode { get; set; }
         public string PersonFullName { get; set; }
         public string DeliveryLocation { get; set; }
         public string MedicationsSummary { get; set; }
