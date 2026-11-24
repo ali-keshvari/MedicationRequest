@@ -22,9 +22,9 @@ namespace AMAR.DataAccess.EF.Repository.HR
             return _context.MedicationRequests.AsNoTracking();
         }
 
-        public MedicationRequest GetById(int uniqId)
+        public MedicationRequest GetById(int medicationRequestId)
         {
-            return _context.MedicationRequests.Find(uniqId);
+            return _context.MedicationRequests.Find(medicationRequestId);
         }
 
         public List<MedicationRequest> GetPendingRequests()
@@ -77,12 +77,12 @@ namespace AMAR.DataAccess.EF.Repository.HR
             return query.OrderBy(x => x.productName).ToList();
         }
 
-        public void IssueRemittance(List<int> uniqIds, string userName, int issueWFFieldId)
+        public void IssueRemittance(List<int> selectedMedicationRequestIds, string userName, int issueWFFieldId)
         {
-            IssueRemittance(uniqIds, null, null, userName, issueWFFieldId);
+            IssueRemittance(selectedMedicationRequestIds, null, null, userName, issueWFFieldId);
         }
 
-        public void IssueRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId)
+        public void IssueRemittance(List<int> selectedMedicationRequestIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId)
         {
             // ۱. استخراج اقلامی که تیک خورده‌اند و حواله آن‌ها باید صادر شود
             var issueQuery = _context.MedicationRequests
@@ -98,9 +98,9 @@ namespace AMAR.DataAccess.EF.Repository.HR
             {
                 issueQuery = issueQuery.Where(x => selectedProductIds.Contains(x.ProductId));
             }
-            else if (selectedUniqIds != null && selectedUniqIds.Any())
+            else if (selectedMedicationRequestIds != null && selectedMedicationRequestIds.Any())
             {
-                issueQuery = issueQuery.Where(x => selectedUniqIds.Contains(x.UniqId));
+                issueQuery = issueQuery.Where(x => selectedMedicationRequestIds.Contains(x.MedicationRequestId));
             }
             else
             {
@@ -122,9 +122,9 @@ namespace AMAR.DataAccess.EF.Repository.HR
             {
                 resetQuery = resetQuery.Where(x => !selectedProductIds.Contains(x.ProductId));
             }
-            else if (selectedUniqIds != null && selectedUniqIds.Any())
+            else if (selectedMedicationRequestIds != null && selectedMedicationRequestIds.Any())
             {
-                resetQuery = resetQuery.Where(x => !selectedUniqIds.Contains(x.UniqId));
+                resetQuery = resetQuery.Where(x => !selectedMedicationRequestIds.Contains(x.MedicationRequestId));
             }
 
             var itemsToReset = resetQuery.ToList();
@@ -262,13 +262,13 @@ namespace AMAR.DataAccess.EF.Repository.HR
             return query.OrderByDescending(x => x.DeliveredDate).ToList();
         }
 
-        public void DeliverMedications(List<int> uniqIds, string userName, int deliveryWFFieldId)
+        public void DeliverMedications(List<int> selectedMedicationRequestIds, string userName, int deliveryWFFieldId)
         {
-            if (uniqIds == null || !uniqIds.Any())
+            if (selectedMedicationRequestIds == null || !selectedMedicationRequestIds.Any())
                 return;
 
             var items = _context.MedicationRequests
-                .Where(x => uniqIds.Contains(x.MedicationRequestId) && x.Status == (int)MedicationStatus.Issued)
+                .Where(x => selectedMedicationRequestIds.Contains(x.MedicationRequestId) && x.Status == (int)MedicationStatus.Issued)
                 .ToList();
 
             if (!items.Any())

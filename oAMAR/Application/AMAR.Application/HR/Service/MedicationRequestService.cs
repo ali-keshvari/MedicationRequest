@@ -56,14 +56,14 @@ namespace AMAR.Application.HR.Service
             return list.Select(MedicationRequestMapper.ToDTO).ToList();
         }
 
-        public void IssueWarehouseRemittance(List<int> selectedUniqIds, string userName, int issueWFFieldId)
+        public void IssueWarehouseRemittance(List<int> selectedMedicationRequestIds, string userName, int issueWFFieldId)
         {
-            IssueWarehouseRemittance(selectedUniqIds, null, null, userName, issueWFFieldId);
+            IssueWarehouseRemittance(selectedMedicationRequestIds, null, null, userName, issueWFFieldId);
         }
 
-        public void IssueWarehouseRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId)
+        public void IssueWarehouseRemittance(List<int> selectedMedicationRequestIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId)
         {
-            _repository.IssueRemittance(selectedUniqIds, selectedProductIds, snapshotId, userName, issueWFFieldId);
+            _repository.IssueRemittance(selectedMedicationRequestIds, selectedProductIds, snapshotId, userName, issueWFFieldId);
         }
 
         public List<RemittanceBatchSummaryDTO> GetRemittanceBatches()

@@ -31,8 +31,8 @@ namespace AMAR.Application.Contract.HR.IService
         /// <summary>
         /// صدور یکجای حواله برای داروهای انتخاب شده + ذخیره در آرشیو دائمی جهت خروجی اکسل و بسته‌بندی + ارسال نوتیفیکیشن
         /// </summary>
-        void IssueWarehouseRemittance(List<int> selectedUniqIds, string userName, int issueWFFieldId);
-        void IssueWarehouseRemittance(List<int> selectedUniqIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId);
+        void IssueWarehouseRemittance(List<int> selectedMedicationRequestIds, string userName, int issueWFFieldId);
+        void IssueWarehouseRemittance(List<int> selectedMedicationRequestIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId);
 
         /// <summary>
         /// دریافت لیست بچ‌های حواله ثبت شده در آرشیو
@@ -56,7 +56,7 @@ namespace AMAR.Application.Contract.HR.IService
         /// <summary>
         /// ثبت تحویل دارو به پرسنل مراجعه‌کننده + Concat بر اساس WorkFlowHdrId و PersonId و ذخیره در فیلد دیگر فرم و ارسال نوتیفیکیشن
         /// </summary>
-        void DeliverMedications(List<int> selectedUniqIds, string userName, int deliveryWFFieldId);
+        void DeliverMedications(List<int> selectedMedicationRequestIds, string userName, int deliveryWFFieldId);
 
         /// <summary>
         /// دریافت لیست محل‌های تحویل جهت فیلتر

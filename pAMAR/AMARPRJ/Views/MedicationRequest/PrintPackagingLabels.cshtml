@@ -1,6 +1,11 @@
 ﻿@model List<AMAR.Application.Contract.HR.DTO.MedicationPackagingSlipDTO>
 @{
     Layout = null;
+    Response.ContentType = "text/html; charset=utf-8";
+    Response.Charset = "utf-8";
+    Response.HeaderEncoding = System.Text.Encoding.UTF8;
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
+
     var firstItem = (Model != null && Model.Count > 0) ? Model.FirstOrDefault() : null;
     var batchNo = (firstItem != null && !string.IsNullOrEmpty(firstItem.RemittanceNumber)) ? firstItem.RemittanceNumber : "All";
     var issuedDate = (firstItem != null && !string.IsNullOrEmpty(firstItem.IssuedDateShamsi)) ? firstItem.IssuedDateShamsi : "-";
@@ -10,7 +15,9 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>چاپ برچسب‌های بسته‌بندی دارو - حواله @batchNo</title>
     
     <!-- فونت وزیرمتن فارسی -->
