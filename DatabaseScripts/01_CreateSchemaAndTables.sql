@@ -60,7 +60,7 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[gen].[MedicationRemittanceArchive]') AND type in (N'U'))
 BEGIN
     CREATE TABLE [gen].[MedicationRemittanceArchive](
-        [ArchiveId] [int] IDENTITY(1,1) NOT NULL,
+        [MedicationRemittanceArchiveId] [int] IDENTITY(1,1) NOT NULL,
         [RemittanceBatchId] [uniqueidentifier] NOT NULL,   -- شناسه بچ حواله
         [RemittanceNumber] [nvarchar](50) NOT NULL,        -- شماره حواله تولید شده
         [SnapshotId] [uniqueidentifier] NULL,              -- شناسه اسنپ شات مرتبط
@@ -77,7 +77,7 @@ BEGIN
         [IssuedBy] [nvarchar](100) NOT NULL,               -- کاربر صادرکننده حواله
         [CreatedDate] [datetime] NOT NULL CONSTRAINT [DF_MedicationRemittanceArchive_CreatedDate] DEFAULT (GETDATE()),
 
-        CONSTRAINT [PK_MedicationRemittanceArchive] PRIMARY KEY CLUSTERED ([ArchiveId] ASC)
+        CONSTRAINT [PK_MedicationRemittanceArchive] PRIMARY KEY CLUSTERED ([MedicationRemittanceArchiveId] ASC)
     );
 
     CREATE NONCLUSTERED INDEX [IX_MedicationRemittanceArchive_Batch] 

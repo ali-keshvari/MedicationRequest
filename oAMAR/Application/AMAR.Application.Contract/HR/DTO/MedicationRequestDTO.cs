@@ -5,7 +5,8 @@ namespace AMAR.Application.Contract.HR.DTO
 {
     public class MedicationRequestDTO
     {
-        public int UniqId { get; set; }
+        public int MedicationRequestId { get; set; }
+        public int UniqId { get => MedicationRequestId; set => MedicationRequestId = value; }
         public int WorkFlowHdrId { get; set; }
         public int PersonId { get; set; }
         public int ProductId { get; set; }
@@ -52,7 +53,8 @@ namespace AMAR.Application.Contract.HR.DTO
     /// </summary>
     public class IssueRemittanceCommandDTO
     {
-        public List<int> SelectedUniqIds { get; set; } = new List<int>();
+        public List<int> SelectedMedicationRequestIds { get; set; } = new List<int>();
+        public List<int> SelectedUniqIds { get => SelectedMedicationRequestIds; set => SelectedMedicationRequestIds = value; }
         public int WFFieldId { get; set; } = 101; // شناسه فیلد فرآیند برای حواله انبار
     }
 
@@ -61,7 +63,8 @@ namespace AMAR.Application.Contract.HR.DTO
     /// </summary>
     public class DeliverMedicationCommandDTO
     {
-        public List<int> SelectedUniqIds { get; set; } = new List<int>();
+        public List<int> SelectedMedicationRequestIds { get; set; } = new List<int>();
+        public List<int> SelectedUniqIds { get => SelectedMedicationRequestIds; set => SelectedMedicationRequestIds = value; }
         public int WFFieldId { get; set; } = 102; // شناسه فیلد فرآیند برای تحویل دبیرخانه
     }
 

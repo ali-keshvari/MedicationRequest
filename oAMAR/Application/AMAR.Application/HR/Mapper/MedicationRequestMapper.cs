@@ -39,7 +39,7 @@ namespace AMAR.Application.HR.Mapper
 
             return new MedicationRequestDTO
             {
-                UniqId = entity.UniqId,
+                MedicationRequestId = entity.MedicationRequestId,
                 WorkFlowHdrId = entity.WorkFlowHdrId,
                 PersonId = entity.PersonId,
                 ProductId = entity.ProductId,

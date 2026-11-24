@@ -15,7 +15,8 @@ namespace AMAR.Domain.HR.Model
     /// </summary>
     public class MedicationRequest
     {
-        public int UniqId { get; set; }
+        public int MedicationRequestId { get; set; }
+        public int UniqId { get => MedicationRequestId; set => MedicationRequestId = value; }
         public int WorkFlowHdrId { get; set; }
         public int PersonId { get; set; }
         public int ProductId { get; set; }

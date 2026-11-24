@@ -7,7 +7,8 @@ namespace AMAR.Domain.HR.Model
     /// </summary>
     public class MedicationRemittanceArchive
     {
-        public int ArchiveId { get; set; }
+        public int MedicationRemittanceArchiveId { get; set; }
+        public int ArchiveId { get => MedicationRemittanceArchiveId; set => MedicationRemittanceArchiveId = value; }
         public Guid RemittanceBatchId { get; set; }
         public string RemittanceNumber { get; set; }
         public Guid? SnapshotId { get; set; }

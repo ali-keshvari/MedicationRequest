@@ -11,11 +11,12 @@ namespace AMAR.DataAccess.EF.Mapping.HR
             // نگاشت به اسکیمای gen و جدول MedicationRequest
             ToTable("MedicationRequest", "gen");
 
-            HasKey(x => x.UniqId);
-            Property(x => x.UniqId)
+            HasKey(x => x.MedicationRequestId);
+            Property(x => x.MedicationRequestId)
                 .HasColumnName("MedicationRequestId")
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity)
                 .IsRequired();
+            Ignore(x => x.UniqId);
 
             Property(x => x.WorkFlowHdrId).IsRequired();
             Property(x => x.PersonId).IsRequired();

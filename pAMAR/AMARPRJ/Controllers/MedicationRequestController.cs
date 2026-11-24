@@ -317,7 +317,7 @@ namespace AMARPRJ.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult DeliverMedications(List<int> selectedUniqIds, int? wfFieldId)
+        public ActionResult DeliverMedications(List<int> selectedMedicationRequestIds, List<int> selectedUniqIds, int? wfFieldId)
         {
             if (!CheckUserAccess( ACCESS_SECRETARIAT))
             {

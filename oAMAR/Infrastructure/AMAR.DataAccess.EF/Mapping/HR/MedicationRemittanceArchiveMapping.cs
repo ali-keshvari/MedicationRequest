@@ -10,10 +10,12 @@ namespace AMAR.DataAccess.EF.Mapping.HR
         {
             ToTable("MedicationRemittanceArchive", "gen");
 
-            HasKey(x => x.ArchiveId);
-            Property(x => x.ArchiveId)
+            HasKey(x => x.MedicationRemittanceArchiveId);
+            Property(x => x.MedicationRemittanceArchiveId)
+                .HasColumnName("MedicationRemittanceArchiveId")
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity)
                 .IsRequired();
+            Ignore(x => x.ArchiveId);
 
             Property(x => x.RemittanceBatchId).IsRequired();
             Property(x => x.RemittanceNumber).HasMaxLength(50).IsRequired();
