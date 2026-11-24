@@ -145,23 +145,29 @@ namespace AMARPRJ.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult TakeSnapshot()
+        public ActionResult TakeSnapshot(List<int> selectedProductIds)
         {
-            if (!CheckUserAccess( ACCESS_WAREHOUSE))
+            if (!CheckUserAccess(ACCESS_WAREHOUSE))
             {
                 return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
             }
 
+            if (selectedProductIds == null || !selectedProductIds.Any())
+            {
+                TempData["WarningMessage"] = "لطفاً حداقل یک قلم دارو را برای ثبت اسنپ‌شات انتخاب نمایید.";
+                return RedirectToAction("Warehouse");
+            }
+
             try
             {
-                var snapshotId = _medicationService.TakeWarehouseSnapshot(User.Identity.Name);
+                var snapshotId = _medicationService.TakeWarehouseSnapshot(User.Identity.Name, selectedProductIds);
                 if (snapshotId == Guid.Empty)
                 {
-                    TempData["WarningMessage"] = "درخواست تایید شده جدیدی جهت ایجاد اسنپ‌شات یافت نشد.";
+                    TempData["WarningMessage"] = "هیچ درخواستی در وضعیت در انتظار برای داروهای انتخابی یافت نشد.";
                     return RedirectToAction("Warehouse");
                 }
 
-                TempData["SuccessMessage"] = "اسنپ‌شات لحظه‌ای با موفقیت ثبت شد و داروها آماده صدور حواله هستند.";
+                TempData["SuccessMessage"] = $"اسنپ‌شات لحظه‌ای برای {selectedProductIds.Count} قلم داروی انتخابی با موفقیت ثبت شد و آماده صدور حواله می‌باشد.";
                 return RedirectToAction("Warehouse", new { snapshotId });
             }
             catch (Exception ex)

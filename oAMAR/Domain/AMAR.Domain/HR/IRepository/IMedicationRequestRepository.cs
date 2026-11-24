@@ -12,7 +12,7 @@ namespace AMAR.Domain.HR.IRepository
         
         // متدهای انباردار
         List<MedicationRequest> GetPendingRequests();
-        Guid CreateSnapshot(string userName);
+        Guid CreateSnapshot(string userName, List<int> productIds = null);
         List<MedicationRequest> GetSnapshottedRequests(Guid? snapshotId = null);
         void IssueRemittance(List<int> uniqIds, string userName, int issueWFFieldId);
 

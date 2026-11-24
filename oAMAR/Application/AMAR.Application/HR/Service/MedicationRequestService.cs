@@ -45,9 +45,9 @@ namespace AMAR.Application.HR.Service
             return list.Select(MedicationRequestMapper.ToDTO).ToList();
         }
 
-        public Guid TakeWarehouseSnapshot(string userName)
+        public Guid TakeWarehouseSnapshot(string userName, List<int> productIds = null)
         {
-            return _repository.CreateSnapshot(userName);
+            return _repository.CreateSnapshot(userName, productIds);
         }
 
         public List<MedicationRequestDTO> GetSnapshottedRequests(Guid? snapshotId = null)

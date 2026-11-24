@@ -19,9 +19,9 @@ namespace AMAR.Application.Contract.HR.IService
         List<MedicationRequestDTO> GetPendingRequests();
 
         /// <summary>
-        /// ایجاد اسنپ شات لحظه‌ای برای درخواست‌های تایید شده
+        /// ایجاد اسنپ شات لحظه‌ای برای درخواست‌های تایید شده (امکان فیلتر بر اساس داروهای انتخابی)
         /// </summary>
-        Guid TakeWarehouseSnapshot(string userName);
+        Guid TakeWarehouseSnapshot(string userName, List<int> productIds = null);
 
         /// <summary>
         /// دریافت لیست رکوردهای اسنپ شات شده جهت انتخاب و صدور حواله

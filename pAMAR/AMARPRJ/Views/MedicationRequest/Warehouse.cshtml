@@ -68,63 +68,70 @@
     </div>
 
     <!-- بخش اول: خلاصه تجمیعی تقاضای داروها و دکمه اسنپ‌شات -->
-    <div class="card card-custom mb-4">
-        <div class="card-header-custom">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-chart-pie text-primary fs-5"></i>
-                <span>خلاصه تجمیعی داروها (تقاضای پرسنل تایید شده توسط پزشک)</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <a href="@Url.Action("RemittanceArchive", "MedicationRequest")" class="btn btn-outline-primary btn-sm px-3 fw-bold shadow-sm">
-                    <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله‌ها و خروجی اکسل بسته‌بندی
-                </a>
-                @using (Html.BeginForm("TakeSnapshot", "MedicationRequest", FormMethod.Post, new { id = "snapshotForm", @class = "d-inline" }))
-                {
-                    @Html.AntiForgeryToken()
+    @using (Html.BeginForm("TakeSnapshot", "MedicationRequest", FormMethod.Post, new { id = "snapshotForm" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="card card-custom mb-4">
+            <div class="card-header-custom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-primary fs-5"></i>
+                    <span>خلاصه تجمیعی داروها (تقاضای پرسنل تایید شده توسط پزشک)</span>
+                    <span id="summaryBadge" class="badge bg-warning text-dark px-3 py-1 rounded-pill ms-1 d-none">0 دارو انتخاب شده</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="@Url.Action("RemittanceArchive", "MedicationRequest")" class="btn btn-outline-primary btn-sm px-3 fw-bold shadow-sm">
+                        <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله‌ها و خروجی اکسل بسته‌بندی
+                    </a>
                     <button type="button" class="btn btn-warning btn-sm px-3 fw-bold shadow-sm" onclick="confirmSnapshot();">
                         <i class="fa-solid fa-camera ms-1"></i> ثبت Snapshot لحظه‌ای
                     </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                @if (summary.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover table-custom text-center align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">
+                                        <input type="checkbox" id="selectAllSummary" class="form-check-input" title="انتخاب همه داروها" />
+                                    </th>
+                                    <th>کد دارو</th>
+                                    <th class="text-end pe-4">نام دارو</th>
+                                    <th>تعداد درخواست‌ها</th>
+                                    <th>مجموع تعداد مورد نیاز</th>
+                                    <th>وضعیت تامین</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in summary)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="selectedProductIds" value="@item.ProductId" class="form-check-input chk-summary" onchange="updateSummaryCounter();" />
+                                        </td>
+                                        <td><span class="badge bg-light text-secondary border">@item.ProductId</span></td>
+                                        <td class="text-end pe-4 fw-bold text-dark">@item.ProductName</td>
+                                        <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">@item.TotalRequests درخواست</span></td>
+                                        <td><span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">@item.TotalQty عدد</span></td>
+                                        <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1">در صف انتظار</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-5 text-center text-muted">
+                        <i class="fa-regular fa-folder-open fs-1 mb-2 d-block text-secondary"></i>
+                        <span>هیچ داروی جدیدی در انتظار ثبت Snapshot وجود ندارد.</span>
+                    </div>
                 }
             </div>
         </div>
-        <div class="card-body p-0">
-            @if (summary.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom text-center align-middle">
-                        <thead>
-                            <tr>
-                                <th>کد دارو</th>
-                                <th class="text-end pe-4">نام دارو</th>
-                                <th>تعداد درخواست‌ها</th>
-                                <th>مجموع تعداد مورد نیاز</th>
-                                <th>وضعیت تامین</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in summary)
-                            {
-                                <tr>
-                                    <td><span class="badge bg-light text-secondary border">@item.ProductId</span></td>
-                                    <td class="text-end pe-4 fw-bold text-dark">@item.ProductName</td>
-                                    <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">@item.TotalRequests درخواست</span></td>
-                                    <td><span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">@item.TotalQty عدد</span></td>
-                                    <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1">در صف انتظار</span></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="p-5 text-center text-muted">
-                    <i class="fa-regular fa-folder-open fs-1 mb-2 d-block text-secondary"></i>
-                    <span>هیچ داروی جدیدی در انتظار ثبت Snapshot وجود ندارد.</span>
-                </div>
-            }
-        </div>
-    </div>
+    }
 
     <!-- بخش دوم: رکوردهای Snapshot جاری جهت انتخاب و صدور حواله -->
     @using (Html.BeginForm("IssueRemittance", "MedicationRequest", FormMethod.Post, new { id = "issueForm" }))
@@ -236,9 +243,41 @@
         }
     }
 
-    // تایید و ثبت اسنپ شات
+    // چک‌باکس انتخاب همه در جدول خلاصه تجمیعی داروها
+    var selectAllSummaryEl = document.getElementById('selectAllSummary');
+    if (selectAllSummaryEl) {
+        selectAllSummaryEl.addEventListener('change', function () {
+            var checkboxes = document.querySelectorAll('.chk-summary');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+            updateSummaryCounter();
+        });
+    }
+
+    // شمارنده داروهای انتخاب شده برای اسنپ‌شات
+    function updateSummaryCounter() {
+        var count = document.querySelectorAll('.chk-summary:checked').length;
+        var badge = document.getElementById('summaryBadge');
+        if (badge) {
+            if (count > 0) {
+                badge.innerText = count + ' قلم دارو انتخاب شده';
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
+        }
+    }
+
+    // تایید و ثبت اسنپ شات از داروهای انتخابی
     function confirmSnapshot() {
-        if (confirm('آیا از ثبت Snapshot لحظه‌ای برای تقاضاهای جدید اطمینان دارید؟\nاین عملیات وضعیت داروها را به حالت آماده صدور حواله تغییر می‌دهد.')) {
+        var count = document.querySelectorAll('.chk-summary:checked').length;
+        if (count === 0) {
+            alert('لطفاً حداقل یک قلم دارو را از جدول بالا برای ثبت Snapshot انتخاب فرمایید.');
+            return;
+        }
+
+        if (confirm('آیا از ثبت Snapshot لحظه‌ای برای ' + count + ' قلم داروی انتخاب شده اطمینان دارید؟\nدرخواست‌های مربوط به این داروها فریز شده و در جدول پایین جهت صدور حواله قرار می‌گیرند.')) {
             document.getElementById('snapshotForm').submit();
         }
     }

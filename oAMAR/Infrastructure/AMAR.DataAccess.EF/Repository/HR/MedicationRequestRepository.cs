@@ -35,11 +35,17 @@ namespace AMAR.DataAccess.EF.Repository.HR
                 .ToList();
         }
 
-        public Guid CreateSnapshot(string userName)
+        public Guid CreateSnapshot(string userName, List<int> productIds = null)
         {
-            var pendingItems = _context.MedicationRequests
-                .Where(x => x.Status == (int)MedicationStatus.Pending)
-                .ToList();
+            var query = _context.MedicationRequests
+                .Where(x => x.Status == (int)MedicationStatus.Pending);
+
+            if (productIds != null && productIds.Any())
+            {
+                query = query.Where(x => productIds.Contains(x.ProductId));
+            }
+
+            var pendingItems = query.ToList();
 
             if (!pendingItems.Any())
                 return Guid.Empty;
