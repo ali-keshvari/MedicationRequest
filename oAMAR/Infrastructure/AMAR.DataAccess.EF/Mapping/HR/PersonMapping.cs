@@ -1,4 +1,4 @@
-using System.Data.Entity.ModelConfiguration;
+﻿using System.Data.Entity.ModelConfiguration;
 using AMAR.Domain.HR.Model;
 
 namespace AMAR.DataAccess.EF.Mapping.HR

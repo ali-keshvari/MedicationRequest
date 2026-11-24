@@ -1,4 +1,4 @@
--- ===================================================================================
+﻿-- ===================================================================================
 -- 1. Create Schema and Table for Medication Request & Remittance Archive
 -- Database: Your Org Database
 -- Schema: gen

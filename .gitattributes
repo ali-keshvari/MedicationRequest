@@ -1,0 +1,5 @@
+* text=auto
+*.cshtml text eol=crlf
+*.cs text eol=crlf
+*.config text eol=crlf
+*.sql text eol=crlf

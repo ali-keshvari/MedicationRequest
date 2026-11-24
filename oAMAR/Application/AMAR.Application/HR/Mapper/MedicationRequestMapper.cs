@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using AMAR.Application.Contract.HR.DTO;
 using AMAR.Domain.HR.Model;

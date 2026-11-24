@@ -1,4 +1,4 @@
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using AMAR.DataAccess.EF.Mapping.HR;
 using AMAR.Domain.HR.Model;
 
