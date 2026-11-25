@@ -35,6 +35,11 @@ namespace AMAR.Application.Contract.HR.IService
         void IssueWarehouseRemittance(List<int> selectedMedicationRequestIds, List<int> selectedProductIds, Guid? snapshotId, string userName, int issueWFFieldId);
 
         /// <summary>
+        /// لغو و بازگرداندن اقلام انتخابی از اسنپ‌شات جاری به صف انتظار اولیه (Status = 0)
+        /// </summary>
+        void RevertSnapshot(Guid? snapshotId, List<int> productIds = null);
+
+        /// <summary>
         /// دریافت لیست بچ‌های حواله ثبت شده در آرشیو
         /// </summary>
         List<RemittanceBatchSummaryDTO> GetRemittanceBatches();

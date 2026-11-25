@@ -66,6 +66,11 @@ namespace AMAR.Application.HR.Service
             _repository.IssueRemittance(selectedMedicationRequestIds, selectedProductIds, snapshotId, userName, issueWFFieldId);
         }
 
+        public void RevertSnapshot(Guid? snapshotId, List<int> productIds = null)
+        {
+            _repository.RevertSnapshot(snapshotId, productIds);
+        }
+
         public List<RemittanceBatchSummaryDTO> GetRemittanceBatches()
         {
             var archives = _repository.GetRemittanceArchives();

@@ -50,7 +50,16 @@ namespace AMAR.DataAccess.EF.Repository.HR
             if (!pendingItems.Any())
                 return Guid.Empty;
 
-            var snapshotId = Guid.NewGuid();
+            // در صورتی که از قبل اسنپ‌شات فعالی وجود داشته باشد، اقلام جدید به همان شناسه ملحق می‌شوند
+            var existingSnapshotId = _context.MedicationRequests
+                .Where(x => x.Status == (int)MedicationStatus.Snapshotted && x.SnapshotId.HasValue)
+                .Select(x => x.SnapshotId)
+                .FirstOrDefault();
+
+            var snapshotId = (existingSnapshotId.HasValue && existingSnapshotId.Value != Guid.Empty)
+                ? existingSnapshotId.Value
+                : Guid.NewGuid();
+
             var now = DateTime.Now;
 
             foreach (var item in pendingItems)
@@ -62,6 +71,35 @@ namespace AMAR.DataAccess.EF.Repository.HR
 
             _context.SaveChanges();
             return snapshotId;
+        }
+
+        public void RevertSnapshot(Guid? snapshotId, List<int> productIds = null)
+        {
+            var query = _context.MedicationRequests
+                .Where(x => x.Status == (int)MedicationStatus.Snapshotted);
+
+            if (snapshotId.HasValue && snapshotId.Value != Guid.Empty)
+            {
+                query = query.Where(x => x.SnapshotId == snapshotId.Value);
+            }
+
+            if (productIds != null && productIds.Any())
+            {
+                query = query.Where(x => productIds.Contains(x.ProductId));
+            }
+
+            var itemsToReset = query.ToList();
+            if (!itemsToReset.Any())
+                return;
+
+            foreach (var item in itemsToReset)
+            {
+                item.Status = (int)MedicationStatus.Pending;
+                item.SnapshotId = null;
+                item.SnapshotDate = null;
+            }
+
+            _context.SaveChanges();
         }
 
         public List<MedicationRequest> GetSnapshottedRequests(Guid? snapshotId = null)

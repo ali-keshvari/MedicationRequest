@@ -179,6 +179,34 @@ namespace AMARPRJ.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public ActionResult RevertSnapshot(List<int> selectedProductIds, Guid? activeSnapshotId)
+        {
+            if (!CheckUserAccess(ACCESS_WAREHOUSE))
+            {
+                return RedirectToAction("AccessDenied", "AccessPolicy", new { accessName = ACCESS_WAREHOUSE });
+            }
+
+            if (selectedProductIds == null || !selectedProductIds.Any())
+            {
+                TempData["ErrorMessage"] = "لطفاً حداقل یک گروه دارویی را برای بازگرداندن به صف انتظار انتخاب فرمایید.";
+                return RedirectToAction("Warehouse");
+            }
+
+            try
+            {
+                _medicationService.RevertSnapshot(activeSnapshotId, selectedProductIds);
+                TempData["SuccessMessage"] = $"تعداد {selectedProductIds.Count} گروه دارویی از اسنپ‌شات لغو شده و به صف انتظار بازگشتند.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "خطا در بازگرداندن اقلام به صف انتظار: " + ex.Message;
+            }
+
+            return RedirectToAction("Warehouse");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult IssueRemittance(List<int> selectedProductIds, List<int> selectedMedicationRequestIds, List<int> selectedUniqIds, Guid? activeSnapshotId, int? wfFieldId)
         {
             if (!CheckUserAccess(ACCESS_WAREHOUSE))

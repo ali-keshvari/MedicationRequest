@@ -6,14 +6,75 @@
     var totalUniqueMeds = summary.Count;
     var totalRequestsCount = summary.Sum(x => x.TotalRequests);
     var totalQtySum = summary.Sum(x => x.TotalQty);
+
+    var snapshotList = Model ?? new List<AMAR.Application.Contract.HR.DTO.MedicationRequestDTO>();
+    var snapUniqueMeds = snapshotList.Select(x => x.ProductId).Distinct().Count();
+    var snapTotalQty = snapshotList.Sum(x => x.Qty);
 }
 
-<div class="container-fluid px-4">
+<style>
+    .transfer-card {
+        border-radius: 12px;
+        transition: box-shadow 0.2s ease;
+    }
+    .transfer-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+    }
+    .transfer-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .transfer-body::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+    .transfer-body::-webkit-scrollbar-thumb:hover {
+        background-color: #94a3b8;
+    }
+    .btn-transfer {
+        border-radius: 10px;
+        font-weight: 700;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-transfer:hover {
+        transform: translateY(-2px);
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .med-item-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        transition: all 0.15s ease-in-out;
+    }
+    .med-item-card:hover {
+        background-color: #f8fafc;
+        border-color: #93c5fd;
+    }
+    .med-item-card.selected {
+        background-color: #eff6ff;
+        border-color: #3b82f6;
+    }
+    .snap-group-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        transition: all 0.15s ease-in-out;
+    }
+    .snap-group-card:hover {
+        background-color: #f8fafc;
+        border-color: #86efac;
+    }
+    .snap-group-card.selected {
+        background-color: #f0fdf4;
+        border-color: #22c55e;
+    }
+</style>
 
-    <!-- اعلان‌های عملیاتی -->
+<div class="container-fluid px-3 px-md-4">
+
+    <!-- نوار اعلان‌ها -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show card-custom border-0 shadow-sm mb-4" role="alert">
+        <div class="alert alert-success alert-dismissible fade show card-custom border-0 shadow-sm mb-3" role="alert">
             <i class="fa-solid fa-circle-check me-2 fs-5"></i>
             <strong>موفقیت:</strong> @TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -21,7 +82,7 @@
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show card-custom border-0 shadow-sm mb-4" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show card-custom border-0 shadow-sm mb-3" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2 fs-5"></i>
             <strong>خطا:</strong> @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -29,333 +90,467 @@
     }
     @if (TempData["WarningMessage"] != null)
     {
-        <div class="alert alert-warning alert-dismissible fade show card-custom border-0 shadow-sm mb-4" role="alert">
-            <i class="fa-solid fa-circle-info me-2 fs-5"></i>
+        <div class="alert alert-warning alert-dismissible fade show card-custom border-0 shadow-sm mb-3" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2 fs-5"></i>
             <strong>توجه:</strong> @TempData["WarningMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <!-- ردیف کارت‌های آماری بالا -->
+    <!-- نوار بالا و کارت‌های آماری -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+            <h4 class="fw-bold mb-1 text-dark">
+                <i class="fa-solid fa-warehouse text-primary me-2"></i>کارتابل انباردار
+            </h4>
+            <div class="text-muted small">مدیریت انتقال اقلام دارویی به Snapshot و صدور حواله رسمی سازمان</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("RemittanceArchive", "MedicationRequest")" class="btn btn-outline-primary btn-sm px-3 py-2 fw-bold shadow-sm rounded-pill">
+                <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله‌ها و خروجی اکسل بسته‌بندی
+            </a>
+        </div>
+    </div>
+
+    <!-- ردیف کارت‌های آماری ۴ گانه -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="stat-card blue">
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <div class="stat-card blue shadow-sm">
                 <div>
-                    <div class="stat-label">تعداد عناوین داروی درخواستی</div>
-                    <div class="stat-value">@totalUniqueMeds</div>
+                    <div class="stat-label">تنوع دارویی در صف انتظار</div>
+                    <div class="stat-value">@totalUniqueMeds <span class="fs-6 fw-normal">قلم</span></div>
                 </div>
                 <div class="stat-icon"><i class="fa-solid fa-capsules"></i></div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stat-card emerald">
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <div class="stat-card emerald shadow-sm">
                 <div>
-                    <div class="stat-label">مجموع تعداد کل اقلام درخواستی</div>
-                    <div class="stat-value">@totalQtySum</div>
+                    <div class="stat-label">مجموع تقاضای کل در صف</div>
+                    <div class="stat-value">@totalQtySum <span class="fs-6 fw-normal">عدد</span></div>
                 </div>
                 <div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stat-card amber">
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <div class="stat-card amber shadow-sm">
                 <div>
-                    <div class="stat-label">کل درخواست‌های در انتظار اسنپ‌شات</div>
-                    <div class="stat-value">@totalRequestsCount</div>
+                    <div class="stat-label">کل درخواست‌های پرسنل در صف</div>
+                    <div class="stat-value">@totalRequestsCount <span class="fs-6 fw-normal">درخواست</span></div>
                 </div>
                 <div class="stat-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
             </div>
         </div>
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <div class="stat-card cyan shadow-sm">
+                <div>
+                    <div class="stat-label">تنوع دارویی Snapshot جاری</div>
+                    <div class="stat-value">@snapUniqueMeds <span class="fs-6 fw-normal">قلم (@snapTotalQty عدد)</span></div>
+                </div>
+                <div class="stat-icon"><i class="fa-solid fa-camera"></i></div>
+            </div>
+        </div>
     </div>
 
-    <!-- بخش اول: خلاصه تجمیعی تقاضای داروها و دکمه اسنپ‌شات -->
-    @using (Html.BeginForm("TakeSnapshot", "MedicationRequest", FormMethod.Post, new { id = "snapshotForm" }))
-    {
-        @Html.AntiForgeryToken()
-        <div class="card card-custom mb-4">
-            <div class="card-header-custom">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-chart-pie text-primary fs-5"></i>
-                    <span>خلاصه تجمیعی داروها (تقاضای پرسنل تایید شده توسط پزشک)</span>
-                    <span id="summaryBadge" class="badge bg-warning text-dark px-3 py-1 rounded-pill ms-1 d-none">0 دارو انتخاب شده</span>
+    <!-- بخش اصلی: پنل دوگانه انتقال (Dual Listbox Transfer Panel) -->
+    <div class="row g-3 align-items-stretch mb-4">
+
+        <!-- ======================= ۱. پنل سمت راست (منبع: صف انتظار تایید پزشک) ======================= -->
+        <div class="col-xl-5 col-lg-5 col-md-12">
+            <div class="card card-custom h-100 shadow-sm border transfer-card bg-white">
+                <!-- هدر پنل راست -->
+                <div class="card-header bg-white border-bottom py-3 px-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary fs-5"></i>
+                            <strong class="fs-6 text-dark">۱. تقاضای تایید شده پزشک</strong>
+                        </div>
+                        <span id="summaryBadge" class="badge bg-warning text-dark px-2 py-1 rounded-pill d-none">0 دارو انتخاب شده</span>
+                    </div>
+                    <div class="text-muted small mb-2">داروهای صف انتظار جهت فریز و ورود به اسنپ‌شات لحظه‌ای انبار:</div>
+                    <!-- جستجوی سریع و انتخاب همه -->
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" id="searchPending" class="form-control form-control-sm" placeholder="🔍 جستجوی سریع دارو..." />
+                        <div class="form-check form-check-inline ms-1 mb-0 flex-shrink-0">
+                            <input type="checkbox" id="selectAllSummary" class="form-check-input" />
+                            <label for="selectAllSummary" class="form-check-label small fw-bold text-secondary cursor-pointer">انتخاب همه</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <a href="@Url.Action("RemittanceArchive", "MedicationRequest")" class="btn btn-outline-primary btn-sm px-3 fw-bold shadow-sm">
-                        <i class="fa-solid fa-box-archive ms-1"></i> آرشیو حواله‌ها و خروجی اکسل بسته‌بندی
-                    </a>
-                    <button type="button" class="btn btn-warning btn-sm px-3 fw-bold shadow-sm" onclick="confirmSnapshot();">
-                        <i class="fa-solid fa-camera ms-1"></i> ثبت Snapshot لحظه‌ای
-                    </button>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                @if (summary.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table table-hover table-custom text-center align-middle">
-                            <thead>
-                                <tr>
-                                    <th style="width: 45px;">
-                                        <input type="checkbox" id="selectAllSummary" class="form-check-input" title="انتخاب همه داروها" />
-                                    </th>
-                                    <th>کد دارو</th>
-                                    <th class="text-end pe-4">نام دارو</th>
-                                    <th>تعداد درخواست‌ها</th>
-                                    <th>مجموع تعداد مورد نیاز</th>
-                                    <th>وضعیت تامین</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+
+                <!-- بدنه پنل راست با اسکرول مجزا -->
+                <div class="card-body p-2 transfer-body" style="max-height: 600px; min-height: 480px; overflow-y: auto;">
+                    @using (Html.BeginForm("TakeSnapshot", "MedicationRequest", FormMethod.Post, new { id = "snapshotForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @if (summary.Any())
+                        {
+                            <div class="d-flex flex-column gap-2" id="pendingMedsList">
                                 @foreach (var item in summary)
                                 {
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" name="selectedProductIds" value="@item.ProductId" class="form-check-input chk-summary" onchange="updateSummaryCounter();" />
-                                        </td>
-                                        <td><span class="badge bg-light text-secondary border">@item.ProductId</span></td>
-                                        <td class="text-end pe-4 fw-bold text-dark">@item.ProductName</td>
-                                        <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">@item.TotalRequests درخواست</span></td>
-                                        <td><span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">@item.TotalQty عدد</span></td>
-                                        <td><span class="badge bg-secondary-subtle text-secondary px-2 py-1">در صف انتظار</span></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="p-5 text-center text-muted">
-                        <i class="fa-regular fa-folder-open fs-1 mb-2 d-block text-secondary"></i>
-                        <span>هیچ داروی جدیدی در انتظار ثبت Snapshot وجود ندارد.</span>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    <!-- بخش دوم: رکوردهای Snapshot جاری به صورت گروهی به ازای هر دارو جهت صدور حواله یا بازگشت به وضعیت صفر -->
-    @using (Html.BeginForm("IssueRemittance", "MedicationRequest", FormMethod.Post, new { id = "issueForm" }))
-    {
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="wfFieldId" value="@(ViewBag.DefaultWFFieldId ?? 101)" />
-        <input type="hidden" name="activeSnapshotId" value="@(ViewBag.ActiveSnapshotId != null ? ViewBag.ActiveSnapshotId.ToString() : "")" />
-
-        <div class="card card-custom">
-            <div class="card-header-custom flex-wrap gap-2">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-boxes-stacked text-success fs-5"></i>
-                    <span>اقلام Snapshot جاری (نمایش گروهی داروها جهت صدور حواله)</span>
-                    <span id="selectedBadge" class="badge bg-success px-3 py-1 rounded-pill">0 گروه انتخاب شده</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="text" id="tableSearch" class="form-control form-control-sm" placeholder="جستجوی سریع دارو..." style="width: 200px;" />
-                    <button type="button" class="btn btn-success btn-sm px-4 fw-bold shadow-sm" onclick="submitRemittance();">
-                        <i class="fa-solid fa-check-double ms-1"></i> کشیدن حواله انبار برای انتخاب‌شده‌ها
-                    </button>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                @if (Model != null && Model.Any())
-                {
-                    var groupedSnapshots = Model
-                        .GroupBy(x => new { x.ProductId, x.productName })
-                        .OrderBy(g => g.Key.productName)
-                        .ToList();
-
-                    <div class="table-responsive">
-                        <table class="table table-hover table-custom text-center align-middle mb-0" id="snapGroupTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">
-                                        <input type="checkbox" id="selectAllGroups" class="form-check-input" checked title="انتخاب همه گروه‌های دارویی" />
-                                    </th>
-                                    <th>کد دارو</th>
-                                    <th class="text-end pe-4">نام داروی تجمیع شده</th>
-                                    <th>تعداد کل درخواست‌ها</th>
-                                    <th>مجموع تعداد مورد نیاز</th>
-                                    <th>وضعیت</th>
-                                    <th style="width: 170px;">ریز درخواست‌ها</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var grp in groupedSnapshots)
-                                {
-                                    <tr class="group-row" data-prod-id="@grp.Key.ProductId">
-                                        <td>
-                                            <input type="checkbox" name="selectedProductIds" value="@grp.Key.ProductId" class="form-check-input chk-grp-item" data-prod-id="@grp.Key.ProductId" checked onchange="updateGroupCounter();" />
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-light text-secondary border">@grp.Key.ProductId</span>
-                                        </td>
-                                        <td class="text-end pe-4 fw-bold text-dark med-group-name">
-                                            @grp.Key.productName
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">@grp.Count() درخواست</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">@grp.Sum(x => x.Qty) عدد</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1">
-                                                <i class="fa-solid fa-camera ms-1"></i> در اسنپ‌شات
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-outline-primary px-3 rounded-pill fw-semibold" data-bs-toggle="collapse" data-bs-target="#details-@grp.Key.ProductId" aria-expanded="false" title="مشاهده پرسنل درخواست‌دهنده این دارو">
-                                                <i class="fa-solid fa-users ms-1"></i> مشاهده (@grp.Count() نفر)
-                                                <i class="fa-solid fa-chevron-down ms-1"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr class="collapse-row">
-                                        <td colspan="7" class="p-0 border-0">
-                                            <div class="collapse bg-light px-4 py-3 border-bottom" id="details-@grp.Key.ProductId">
-                                                <div class="card border-0 shadow-sm">
-                                                    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-                                                        <span class="small fw-bold text-secondary">
-                                                            <i class="fa-solid fa-clipboard-list text-primary ms-1"></i> لیست پرسنل درخواست‌دهنده داروی «@grp.Key.productName»
+                                    <div class="med-item-card p-2 p-md-3 pending-med-item cursor-pointer" data-filter="@(item.ProductName.ToLower()) @item.ProductId" onclick="togglePendingItem(this, event);">
+                                        <div class="d-flex align-items-center gap-2 gap-md-3">
+                                            <input type="checkbox" name="selectedProductIds" value="@item.ProductId" class="form-check-input flex-shrink-0 chk-summary" onchange="updateSummaryCounter();" onclick="event.stopPropagation();" />
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-bold text-dark med-title fs-6">@item.ProductName</span>
+                                                    <span class="badge bg-light text-secondary border">کد: @item.ProductId</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                                    <div class="d-flex gap-2">
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                                            <i class="fa-solid fa-users ms-1"></i>@item.TotalRequests درخواست
                                                         </span>
-                                                        <span class="badge bg-light text-dark border">مجموع: @grp.Sum(x => x.Qty) عدد</span>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                            <i class="fa-solid fa-boxes-stacked ms-1"></i>مجموع @item.TotalQty عدد
+                                                        </span>
                                                     </div>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-bordered text-center align-middle mb-0 small">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th style="width: 40px;">ردیف</th>
-                                                                    <th>شماره فرآیند</th>
-                                                                    <th>شناسه شخص</th>
-                                                                    <th>کد پرسنلی / نام همکار</th>
-                                                                    <th>محل تحویل</th>
-                                                                    <th>تعداد</th>
-                                                                    <th>سال / فصل</th>
-                                                                    <th>تاریخ اسنپ‌شات</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @{ int subIdx = 1; }
-                                                                @foreach (var sub in grp)
-                                                                {
-                                                                    <tr>
-                                                                        <td class="text-muted">@subIdx</td>
-                                                                        <td><span class="badge bg-light text-dark border">#@sub.WorkFlowHdrId</span></td>
-                                                                        <td><span class="badge bg-light text-secondary border">@sub.PersonId</span></td>
-                                                                        <td class="fw-semibold">
-                                                                            @(sub.PersonelCode.HasValue ? sub.PersonelCode.Value.ToString() + " - " : "")@(string.IsNullOrEmpty(sub.PersonFullName) ? "ثبت شده" : sub.PersonFullName)
-                                                                        </td>
-                                                                        <td>
-                                                                            <i class="fa-solid fa-location-dot text-danger ms-1"></i>
-                                                                            @(string.IsNullOrEmpty(sub.DeliveryLocation) ? "دبیرخانه مرکزی" : sub.DeliveryLocation)
-                                                                        </td>
-                                                                        <td><span class="badge bg-success-subtle text-success">@sub.Qty عدد</span></td>
-                                                                        <td>@sub.ShYear / @sub.ShSeason</td>
-                                                                        <td class="text-muted">@(sub.SnapshotDateShamsi ?? "-")</td>
-                                                                    </tr>
-                                                                    subIdx++;
-                                                                }
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                                    <span class="badge bg-secondary-subtle text-secondary small">در صف انتظار</span>
                                                 </div>
                                             </div>
-                                        </td>
-                                    </tr>
+                                        </div>
+                                    </div>
                                 }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="p-5 text-center text-muted">
-                        <i class="fa-solid fa-list-check fs-1 mb-2 d-block text-secondary"></i>
-                        <span>هیچ دارویی در اسنپ‌شات فعلی وجود ندارد. لطفاً از جدول بالا داروهای مورد نظر را انتخاب و دکمه «ثبت Snapshot لحظه‌ای» را کلیک کنید.</span>
-                    </div>
-                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="p-5 text-center text-muted">
+                                <i class="fa-regular fa-folder-open fs-1 mb-2 d-block text-secondary"></i>
+                                <strong class="d-block mb-1">صف انتظار خالی است</strong>
+                                <span class="small">هیچ داروی جدیدی در انتظار ثبت اسنپ‌شات وجود ندارد.</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- فوتر پنل راست -->
+                <div class="card-footer bg-light border-top py-2 px-3 d-flex justify-content-between align-items-center small text-muted">
+                    <span>کل اقلام صف انتظار: <strong>@summary.Count</strong> قلم</span>
+                    <span>مجموع تقاضا: <strong>@totalQtySum</strong> عدد</span>
+                </div>
             </div>
         </div>
-    }
 
+        <!-- ======================= ۲. ستون میانی: دکمه‌های انتقال (Transfer Controls) ======================= -->
+        <div class="col-xl-2 col-lg-2 col-md-12 d-flex flex-column justify-content-center align-items-center gap-3 py-2">
+            <div class="bg-white p-3 rounded-4 shadow-sm border w-100 text-center">
+                <div class="small fw-bold text-secondary mb-3 d-none d-lg-block">
+                    <i class="fa-solid fa-arrows-left-right text-primary ms-1"></i> انتقال داروها
+                </div>
+
+                <!-- دکمه انتقال به چپ: ثبت اسنپ‌شات (از راست به چپ) -->
+                <button type="button" class="btn btn-primary btn-transfer w-100 py-3 mb-3 shadow-sm d-flex flex-column align-items-center justify-content-center" onclick="confirmSnapshot();" title="انتقال داروهای انتخاب شده از صف انتظار به اسنپ‌شات">
+                    <div class="d-flex align-items-center gap-2 fs-5 mb-1">
+                        <i class="fa-solid fa-arrow-left fa-beat"></i>
+                        <i class="fa-solid fa-camera text-warning"></i>
+                    </div>
+                    <strong class="fs-6">انتقال به اسنپ‌شات</strong>
+                    <span id="centerSnapCountBadge" class="badge bg-warning text-dark mt-1 px-2 py-1 rounded-pill small d-none">0 قلم انتخاب شده</span>
+                </button>
+
+                <!-- دکمه بازگشت به راست: لغو و بازگشت به صف انتظار (از چپ به راست) -->
+                <button type="button" class="btn btn-outline-danger btn-transfer w-100 py-2 shadow-sm d-flex flex-column align-items-center justify-content-center" onclick="confirmRevert();" title="لغو اسنپ‌شات و بازگرداندن داروهای انتخاب شده به صف انتظار">
+                    <div class="d-flex align-items-center gap-2 fs-6 mb-1">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <span class="small fw-bold">بازگشت به صف</span>
+                </button>
+
+                <div class="mt-3 text-muted border-top pt-2 small" style="font-size: 11px;">
+                    <i class="fa-solid fa-circle-info text-info ms-1"></i>
+                    داروها پس از انتقال به باکس چپ، فریز شده و آماده صدور حواله می‌شوند.
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= ۳. پنل سمت چپ (مقصد: اقلام اسنپ‌شات جاری و صدور حواله انبار) ======================= -->
+        <div class="col-xl-5 col-lg-5 col-md-12">
+            <div class="card card-custom h-100 shadow-sm border transfer-card bg-white">
+                <!-- هدر پنل چپ -->
+                <div class="card-header bg-white border-bottom py-3 px-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-boxes-stacked text-success fs-5"></i>
+                            <strong class="fs-6 text-dark">۲. اقلام Snapshot جاری</strong>
+                        </div>
+                        <span id="selectedBadge" class="badge bg-success px-2 py-1 rounded-pill">0 گروه انتخاب شده</span>
+                    </div>
+
+                    <!-- دکمه اصلی صدور حواله انبار برای انتخاب‌شده‌ها -->
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <button type="button" class="btn btn-success fw-bold shadow-sm flex-grow-1 py-2 fs-6" onclick="submitRemittance();">
+                            <i class="fa-solid fa-check-double ms-1"></i> کشیدن حواله انبار برای انتخاب‌شده‌ها
+                        </button>
+                    </div>
+
+                    <!-- جستجوی سریع و انتخاب همه -->
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" id="searchSnapshot" class="form-control form-control-sm" placeholder="🔍 جستجوی سریع در اسنپ‌شات..." />
+                        <div class="form-check form-check-inline ms-1 mb-0 flex-shrink-0">
+                            <input type="checkbox" id="selectAllGroups" class="form-check-input" checked />
+                            <label for="selectAllGroups" class="form-check-label small fw-bold text-secondary cursor-pointer">انتخاب همه</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بدنه پنل چپ با فرم صدور حواله و بازگشت -->
+                <div class="card-body p-2 transfer-body" style="max-height: 600px; min-height: 480px; overflow-y: auto;">
+                    @using (Html.BeginForm("IssueRemittance", "MedicationRequest", FormMethod.Post, new { id = "issueForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="wfFieldId" value="@(ViewBag.DefaultWFFieldId ?? 101)" />
+                        <input type="hidden" name="activeSnapshotId" value="@(ViewBag.ActiveSnapshotId != null ? ViewBag.ActiveSnapshotId.ToString() : "")" />
+
+                        if (snapshotList.Any())
+                        {
+                            var groupedSnapshots = snapshotList
+                                .GroupBy(x => new { x.ProductId, x.productName })
+                                .OrderBy(g => g.Key.productName)
+                                .ToList();
+
+                            <div class="d-flex flex-column gap-2" id="snapshotMedsList">
+                                @foreach (var grp in groupedSnapshots)
+                                {
+                                    var collapseId = "collapseSnap_" + grp.Key.ProductId;
+                                    <div class="snap-group-card p-2 p-md-3 snap-group-item selected" data-filter="@(grp.Key.productName.ToLower()) @grp.Key.ProductId">
+                                        <div class="d-flex align-items-center gap-2 gap-md-3">
+                                            <input type="checkbox" name="selectedProductIds" value="@grp.Key.ProductId" class="form-check-input flex-shrink-0 chk-grp-item" checked onchange="updateGroupCounter(); toggleSnapCardStyle(this);" />
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <strong class="text-dark med-title fs-6">@grp.Key.productName</strong>
+                                                    <span class="badge bg-light text-secondary border">کد: @grp.Key.ProductId</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                                    <div class="d-flex gap-2">
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                                            <i class="fa-solid fa-users ms-1"></i>@grp.Count() درخواست
+                                                        </span>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                            <i class="fa-solid fa-boxes-stacked ms-1"></i>مجموع @grp.Sum(x => x.Qty) عدد
+                                                        </span>
+                                                    </div>
+                                                    <button class="btn btn-outline-secondary btn-sm py-0 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" title="مشاهده ریز درخواست‌ها">
+                                                        <i class="fa-solid fa-chevron-down ms-1 small"></i>ریز درخواست‌ها
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- آکاردئون ریز درخواست‌های پرسنل -->
+                                        <div class="collapse mt-2" id="@collapseId">
+                                            <div class="card card-body bg-light p-2 border-0 rounded-3 small">
+                                                <table class="table table-sm table-bordered text-center align-middle mb-0 bg-white small">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 30px;">#</th>
+                                                            <th>فرآیند</th>
+                                                            <th>پرسنل</th>
+                                                            <th>محل تحویل</th>
+                                                            <th>تعداد</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @{ int sIdx = 1; }
+                                                        @foreach (var sub in grp)
+                                                        {
+                                                            <tr>
+                                                                <td class="text-muted">@sIdx</td>
+                                                                <td><span class="badge bg-light text-dark border">#@sub.WorkFlowHdrId</span></td>
+                                                                <td class="fw-semibold">
+                                                                    @(sub.PersonelCode.HasValue ? sub.PersonelCode.Value.ToString() + " - " : "")@(string.IsNullOrEmpty(sub.PersonFullName) ? "پرسنل" : sub.PersonFullName)
+                                                                </td>
+                                                                <td>
+                                                                    <i class="fa-solid fa-location-dot text-danger ms-1"></i>@(string.IsNullOrEmpty(sub.DeliveryLocation) ? "دبیرخانه مرکزی" : sub.DeliveryLocation)
+                                                                </td>
+                                                                <td><span class="badge bg-success-subtle text-success">@sub.Qty عدد</span></td>
+                                                            </tr>
+                                                            sIdx++;
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="p-5 text-center text-muted">
+                                <i class="fa-solid fa-box-open fs-1 mb-2 d-block text-secondary"></i>
+                                <strong class="d-block mb-1 fs-6">اسنپ‌شات فعلی خالی است</strong>
+                                <span class="small text-muted">
+                                    از باکس سمت راست داروهای مدنظر را تیک بزنید و دکمه <strong>«انتقال به اسنپ‌شات ←»</strong> را کلیک فرمایید تا وارد این باکس شوند.
+                                </span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- فوتر پنل چپ -->
+                <div class="card-footer bg-light border-top py-2 px-3 d-flex justify-content-between align-items-center small text-muted">
+                    <span>گروه‌ها در اسنپ‌شات: <strong>@snapUniqueMeds</strong></span>
+                    <span>مجموع اقلام آماده حواله: <strong>@snapTotalQty</strong> عدد</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 @section scripts {
 <script>
-    // چک‌باکس انتخاب همه در جدول خلاصه تجمیعی داروها (بخش اول)
+    // کلیک روی کل ردیف در باکس راست برای تاگل چک‌باکس
+    function togglePendingItem(cardEl, event) {
+        var chk = cardEl.querySelector('.chk-summary');
+        if (chk && event.target !== chk) {
+            chk.checked = !chk.checked;
+            updateSummaryCounter();
+        }
+    }
+
+    // استایل انتخابی برای کارت‌های اسنپ‌شات
+    function toggleSnapCardStyle(chk) {
+        var card = chk.closest('.snap-group-card');
+        if (card) {
+            if (chk.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        }
+    }
+
+    // انتخاب همه در باکس راست (صف انتظار)
     var selectAllSummaryEl = document.getElementById('selectAllSummary');
     if (selectAllSummaryEl) {
         selectAllSummaryEl.addEventListener('change', function () {
             var checkboxes = document.querySelectorAll('.chk-summary');
             for (var i = 0; i < checkboxes.length; i++) {
                 checkboxes[i].checked = this.checked;
+                var card = checkboxes[i].closest('.med-item-card');
+                if (card) {
+                    if (this.checked) card.classList.add('selected');
+                    else card.classList.remove('selected');
+                }
             }
             updateSummaryCounter();
         });
     }
 
-    // شمارنده داروهای انتخاب شده برای ثبت اسنپ‌شات
+    // شمارنده داروهای انتخاب شده در باکس راست
     function updateSummaryCounter() {
-        var count = document.querySelectorAll('.chk-summary:checked').length;
+        var checkboxes = document.querySelectorAll('.chk-summary');
+        var checkedCount = 0;
+        for (var i = 0; i < checkboxes.length; i++) {
+            var card = checkboxes[i].closest('.med-item-card');
+            if (checkboxes[i].checked) {
+                checkedCount++;
+                if (card) card.classList.add('selected');
+            } else {
+                if (card) card.classList.remove('selected');
+            }
+        }
+
         var badge = document.getElementById('summaryBadge');
+        var centerBadge = document.getElementById('centerSnapCountBadge');
+
         if (badge) {
-            if (count > 0) {
-                badge.innerText = count + ' قلم دارو انتخاب شده';
+            if (checkedCount > 0) {
+                badge.innerText = checkedCount + ' قلم دارو انتخاب شده';
                 badge.classList.remove('d-none');
             } else {
                 badge.classList.add('d-none');
             }
         }
+
+        if (centerBadge) {
+            if (checkedCount > 0) {
+                centerBadge.innerText = checkedCount + ' قلم آماده انتقال';
+                centerBadge.classList.remove('d-none');
+            } else {
+                centerBadge.classList.add('d-none');
+            }
+        }
     }
 
-    // تایید و ثبت اسنپ شات از داروهای انتخابی
+    // تایید و انتقال اقلام انتخاب شده از باکس راست به باکس چپ (ثبت اسنپ‌شات)
     function confirmSnapshot() {
         var count = document.querySelectorAll('.chk-summary:checked').length;
         if (count === 0) {
-            alert('لطفاً حداقل یک قلم دارو را از جدول بالا برای ثبت Snapshot انتخاب فرمایید.');
+            alert('لطفاً حداقل یک قلم دارو را از باکس سمت راست (صف انتظار) انتخاب فرمایید.');
             return;
         }
 
-        if (confirm('آیا از ثبت Snapshot لحظه‌ای برای ' + count + ' قلم داروی انتخاب شده اطمینان دارید؟\nدرخواست‌های مربوط به این داروها فریز شده و در جدول پایین جهت صدور حواله قرار می‌گیرند.')) {
+        if (confirm('آیا از انتقال ' + count + ' قلم داروی انتخاب شده به Snapshot لحظه‌ای اطمینان دارید؟\nاین داروها فریز شده و در باکس سمت چپ جهت صدور حواله قرار می‌گیرند.')) {
             document.getElementById('snapshotForm').submit();
         }
     }
 
-    // چک‌باکس انتخاب همه گروه‌های دارویی در اسنپ‌شات (بخش دوم)
+    // انتخاب همه در باکس چپ (اسنپ‌شات)
     var selectAllGroupsEl = document.getElementById('selectAllGroups');
     if (selectAllGroupsEl) {
         selectAllGroupsEl.addEventListener('change', function () {
             var checkboxes = document.querySelectorAll('.chk-grp-item');
             for (var i = 0; i < checkboxes.length; i++) {
                 checkboxes[i].checked = this.checked;
+                toggleSnapCardStyle(checkboxes[i]);
             }
             updateGroupCounter();
         });
     }
 
-    // شمارنده گروه‌های دارویی انتخاب شده برای حواله
+    // شمارنده گروه‌های انتخاب شده در باکس چپ
     function updateGroupCounter() {
         var count = document.querySelectorAll('.chk-grp-item:checked').length;
         var total = document.querySelectorAll('.chk-grp-item').length;
         var badge = document.getElementById('selectedBadge');
         if (badge) {
-            badge.innerText = count + ' از ' + total + ' گروه دارویی انتخاب شده';
-            badge.className = count > 0 ? 'badge bg-success px-3 py-1 rounded-pill' : 'badge bg-secondary px-3 py-1 rounded-pill';
+            badge.innerText = count + ' از ' + total + ' گروه انتخاب شده';
+            badge.className = count > 0 ? 'badge bg-success px-2 py-1 rounded-pill' : 'badge bg-secondary px-2 py-1 rounded-pill';
         }
     }
 
-    // تایید و صدور حواله انبار
+    // لغو و بازگرداندن اقلام انتخاب شده از باکس چپ به باکس راست (صف انتظار)
+    function confirmRevert() {
+        var count = document.querySelectorAll('.chk-grp-item:checked').length;
+        var total = document.querySelectorAll('.chk-grp-item').length;
+
+        if (total === 0) {
+            alert('اسنپ‌شات فعلی خالی است و دارویی برای بازگرداندن وجود ندارد.');
+            return;
+        }
+
+        if (count === 0) {
+            alert('لطفاً حداقل یک گروه دارویی را از باکس چپ جهت بازگرداندن به صف انتظار انتخاب فرمایید.');
+            return;
+        }
+
+        if (confirm('آیا از لغو اسنپ‌شات و بازگرداندن ' + count + ' گروه دارویی انتخاب شده به صف انتظار (باکس سمت راست) اطمینان دارید؟')) {
+            var form = document.getElementById('issueForm');
+            form.action = '@Url.Action("RevertSnapshot", "MedicationRequest")';
+            form.submit();
+        }
+    }
+
+    // صدور حواله انبار برای اقلام انتخاب شده در باکس چپ
     function submitRemittance() {
         var count = document.querySelectorAll('.chk-grp-item:checked').length;
         var total = document.querySelectorAll('.chk-grp-item').length;
         var unchecked = total - count;
 
         if (total === 0) {
-            alert('هیچ دارویی در اسنپ‌شات فعلی وجود ندارد.');
+            alert('هیچ دارویی در اسنپ‌شات فعلی وجود ندارد. ابتدا از باکس سمت راست داروهایی را به اسنپ‌شات منتقل فرمایید.');
             return;
         }
 
         if (count === 0) {
-            if (confirm('هیچ گروه دارویی تیک نخورده است!\n\nآیا تمایل دارید تمام اقلام (' + total + ' گروه دارویی) از اسنپ‌شات خارج شده و به وضعیت در انتظار (Status = 0) بازگردانده شوند؟')) {
-                document.getElementById('issueForm').submit();
+            if (confirm('هیچ گروه دارویی برای حواله تیک نخورده است!\n\nآیا تمایل دارید تمام اقلام (' + total + ' گروه دارویی) از اسنپ‌شات خارج شده و به صف انتظار (Status = 0) بازگردانده شوند؟')) {
+                var form = document.getElementById('issueForm');
+                form.action = '@Url.Action("IssueRemittance", "MedicationRequest")';
+                form.submit();
             }
             return;
         }
@@ -364,35 +559,44 @@
             '✓ داروهای تیک‌خورده (' + count + ' گروه): وضعیت به «حواله صادر شده» تغییر یافته، در آرشیو ثبت و اطلاع‌رسانی ارسال می‌شود.\n';
 
         if (unchecked > 0) {
-            message += '\n✗ داروهای تیک‌نخورده (' + unchecked + ' گروه): از اسنپ‌شات خارج شده و به صف انتظار (Status = 0) بازمی‌گردند.';
+            message += '\n✗ اقلام تیک‌نخورده (' + unchecked + ' گروه): از اسنپ‌شات خارج شده و به صف انتظار (باکس راست) بازمی‌گردند.';
         }
 
         if (confirm(message)) {
-            document.getElementById('issueForm').submit();
+            var form = document.getElementById('issueForm');
+            form.action = '@Url.Action("IssueRemittance", "MedicationRequest")';
+            form.submit();
         }
     }
 
-    // فیلتر سریع متنی در جدول گروه‌های دارویی
-    var searchEl = document.getElementById('tableSearch');
-    if (searchEl) {
-        searchEl.addEventListener('keyup', function () {
-            var filter = this.value.toLowerCase();
-            var rows = document.querySelectorAll('.group-row');
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                var medNameEl = row.querySelector('.med-group-name');
-                var medName = medNameEl ? medNameEl.innerText.toLowerCase() : '';
-                var match = medName.indexOf(filter) > -1;
-                row.style.display = match ? '' : 'none';
-                var nextCollapse = row.nextElementSibling;
-                if (nextCollapse && nextCollapse.classList.contains('collapse-row')) {
-                    nextCollapse.style.display = match ? '' : 'none';
-                }
+    // فیلتر سریع متنی در باکس سمت راست
+    var searchPendingEl = document.getElementById('searchPending');
+    if (searchPendingEl) {
+        searchPendingEl.addEventListener('keyup', function () {
+            var filter = this.value.toLowerCase().trim();
+            var items = document.querySelectorAll('.pending-med-item');
+            for (var i = 0; i < items.length; i++) {
+                var text = (items[i].getAttribute('data-filter') || '').toLowerCase();
+                items[i].style.display = (filter === '' || text.indexOf(filter) > -1) ? '' : 'none';
             }
         });
     }
 
-    // فراخوانی اولیه شمارنده
+    // فیلتر سریع متنی در باکس سمت چپ
+    var searchSnapshotEl = document.getElementById('searchSnapshot');
+    if (searchSnapshotEl) {
+        searchSnapshotEl.addEventListener('keyup', function () {
+            var filter = this.value.toLowerCase().trim();
+            var items = document.querySelectorAll('.snap-group-item');
+            for (var i = 0; i < items.length; i++) {
+                var text = (items[i].getAttribute('data-filter') || '').toLowerCase();
+                items[i].style.display = (filter === '' || text.indexOf(filter) > -1) ? '' : 'none';
+            }
+        });
+    }
+
+    // اجرای اولیه شمارنده‌ها
+    updateSummaryCounter();
     updateGroupCounter();
 </script>
 }
